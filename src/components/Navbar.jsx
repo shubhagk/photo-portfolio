@@ -41,7 +41,7 @@ export default function Navbar() {
                 `
               }
             >
-              {link.label}
+              {link.label}&nbsp; &nbsp;
             </NavLink>
           ))}
         </nav>

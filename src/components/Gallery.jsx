@@ -80,41 +80,64 @@ export default function Gallery() {
       </div>
 
       {/* Gallery Grid */}
-      <div className="min-h-screen bg-[#0e0b07] pt-24">
-        <div
-          className="
-            max-w-[1200px] mx-auto
-            grid [grid-template-columns:repeat(auto-fill,minmax(240px,1fr))]
-            gap-6 p-[100px]
-            bg-[#160d04] rounded-xl
-            max-sm:[grid-template-columns:repeat(auto-fill,minmax(150px,1fr))]
-            max-sm:gap-4 max-sm:p-6
-          "
-        >
-          {images.map((image) => (
-            <div
-              key={image.id}
-              onClick={() => setActiveImage(image)}
-              className="
-                cursor-pointer
-                bg-black p-1 rounded-xl
-                border border-black
-                shadow-lg overflow-hidden
-                transition-transform duration-300
-                hover:scale-105
-              "
-            >
-              <img
-                src={image.src}
-                alt={image.alt}
+      <div className="min-h-screen bg-[#0a0806] pt-24 pb-20">
+        <div className="max-w-7xl mx-auto px-6 py-16">
+          <div className="text-center mb-16">
+            <h1 className="text-sm tracking-[0.5em] font-light text-amber-400 mb-4 uppercase">
+              Collection
+            </h1>
+            <div className="w-16 h-px bg-amber-400 mx-auto mb-8" />
+            <h2 className="text-4xl md:text-5xl font-serif font-light mb-6">
+              Wildlife Gallery
+            </h2>
+            <p className="text-gray-400 max-w-2xl mx-auto">
+              A curated selection of moments frozen in time, showcasing the incredible diversity and beauty of our planet's wildlife.
+            </p>
+          </div>
+
+          <div
+            className="
+              grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3
+              gap-6
+            "
+          >
+            {images.map((image) => (
+              <div
+                key={image.id}
+                onClick={() => setActiveImage(image)}
                 className="
-                  w-full h-[200px]
-                  object-cover rounded-lg block
-                  max-sm:h-[150px]
+                  group cursor-pointer
+                  relative overflow-hidden
+                  rounded-xl
+                  aspect-[4/3]
                 "
-              />
-            </div>
-          ))}
+              >
+                <img
+                  src={image.src}
+                  alt={image.alt}
+                  className="
+                    w-full h-full
+                    object-cover
+                    transition-transform duration-700
+                    group-hover:scale-110
+                  "
+                />
+                <div className="
+                  absolute inset-0
+                  bg-gradient-to-t from-black/60 to-transparent
+                  opacity-0 group-hover:opacity-100
+                  transition-opacity duration-300
+                " />
+                <div className="
+                  absolute inset-0
+                  border-2 border-amber-400/0
+                  group-hover:border-amber-400/50
+                  rounded-xl
+                  transition-all duration-300
+                " />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 

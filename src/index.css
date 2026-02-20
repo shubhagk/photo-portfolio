@@ -1,18 +1,33 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+* {
+  scroll-behavior: smooth;
+}
 
 body {
-  background-color: black;
+  background-color: #0a0806;
   color: white;
   margin: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-family: 'Inter', sans-serif;
 }
-a,
-a:hover {
-  color: #f59e0b; /* amber-300 */
-  text-decoration: wavy;
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Playfair Display', serif;
 }
-a:visited {
-  color: rgb(219, 134, 14);
-  text-decoration: none;
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 1.5s ease-out;
 }

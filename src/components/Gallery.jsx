@@ -2,10 +2,10 @@ import { useState, useEffect } from "react";
 import Navbar from "../components/Navbar.jsx";
 
 const images = [
-  { id: 1, src: "/insta1.jpg", alt: "Image 1" },
+  { id: 1, src: "/insta4.jpg", alt: "Image 1" },
   { id: 2, src: "/insta2.jpg", alt: "Image 2" },
   { id: 3, src: "/insta3.jpg", alt: "Image 3" },
-  { id: 4, src: "/insta4.jpg", alt: "Image 4" },
+  { id: 4, src: "/insta1.jpg", alt: "Image 4" },
   { id: 5, src: "/insta5.jpg", alt: "Image 5" },
 ];
 

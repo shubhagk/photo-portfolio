@@ -1,31 +1,70 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import Navbar from "../components/Navbar.jsx";
-
-const images = [
-  { id: 1, src: "/insta4.jpg", alt: "Image 1" },
-  { id: 2, src: "/insta2.jpg", alt: "Image 2" },
-  { id: 3, src: "/insta3.jpg", alt: "Image 3" },
-  { id: 4, src: "/insta1.jpg", alt: "Image 4" },
-  { id: 5, src: "/insta5.jpg", alt: "Image 5" },
-];
 
 export default function Gallery() {
   const [activeImage, setActiveImage] = useState(null);
   const [zoomLevel, setZoomLevel] = useState(1);
+
+  const images = [
+    { id: 1, src: "/insta4.jpg", alt: "Image 1" },
+    { id: 2, src: "/insta2.jpg", alt: "Image 2" },
+    { id: 3, src: "/insta3.jpg", alt: "Image 3" },
+    { id: 4, src: "/insta1.jpg", alt: "Image 4" },
+    { id: 5, src: "/insta5.jpg", alt: "Image 5" },
+  ];
+
+  const currentIndex = activeImage
+    ? images.findIndex((img) => img.id === activeImage.id)
+    : -1;
+
+  const showPrev = () => {
+    const prevIndex = (currentIndex - 1 + images.length) % images.length;
+    setActiveImage(images[prevIndex]);
+    setZoomLevel(1);
+  };
+
+  const showNext = () => {
+    const nextIndex = (currentIndex + 1) % images.length;
+    setActiveImage(images[nextIndex]);
+    setZoomLevel(1);
+  };
+
+  useEffect(() => {
+    const handleKey = (e) => {
+      if (!activeImage) return;
+
+      if (e.key === "Escape") closeModal();
+      if (e.key === "ArrowLeft") showPrev();
+      if (e.key === "ArrowRight") showNext();
+    };
+
+    window.addEventListener("keydown", handleKey);
+    document.body.style.overflow = activeImage ? "hidden" : "auto";
+
+    return () => {
+      window.removeEventListener("keydown", handleKey);
+      document.body.style.overflow = "auto";
+    };
+  }, [activeImage]);
 
   const closeModal = () => {
     setActiveImage(null);
     setZoomLevel(1);
   };
 
-  // ESC key + body scroll lock
+  // ESC + body scroll lock (single effect)
   useEffect(() => {
     const handleKey = (e) => {
       if (e.key === "Escape") closeModal();
     };
 
-    document.body.style.overflow = activeImage ? "hidden" : "auto";
-    window.addEventListener("keydown", handleKey);
+    if (activeImage) {
+      document.body.style.overflow = "hidden";
+      window.addEventListener("keydown", handleKey);
+    } else {
+      document.body.style.overflow = "auto";
+    }
 
     return () => {
       window.removeEventListener("keydown", handleKey);
@@ -79,54 +118,119 @@ export default function Gallery() {
         </div>
       </div>
 
-      {/* POPUP MODAL */}
-      {activeImage && (
-        <div
-          className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm"
-          onClick={closeModal}
-        >
-          <img
-            src={activeImage.src}
-            alt={activeImage.alt}
-            onClick={(e) => {
-              e.stopPropagation();
-              setZoomLevel((z) => (z === 1 ? 2 : 1));
-            }}
-            className={`
-        fixed
-        top-1/2 left-1/2
-        -translate-x-1/2 -translate-y-1/2
-        max-w-[95vw] max-h-[95vh]
-        object-contain
-        rounded-2xl shadow-2xl
-        transition-transform duration-300 ease-out
-        ${
-          zoomLevel === 1
-            ? "scale-100 cursor-zoom-in"
-            : "scale-150 cursor-zoom-out"
-        }
-      `}
-          />
+      {/* LIGHTBOX (PORTAL) */}
+      {activeImage &&
+        createPortal(
+          <>
+            {/* Backdrop */}
+            <div
+              onClick={closeModal}
+              style={{
+                position: "fixed",
+                inset: 0,
+                background: "rgba(0,0,0,0.9)",
+                zIndex: 99998,
+              }}
+            />
 
-          {/* Close button */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              closeModal();
-            }}
-            className="
-        fixed top-6 right-6
-        w-10 h-10 rounded-full
-        bg-black text-white text-3xl
-        flex items-center justify-center
-        hover:opacity-70
-        z-[101]
-      "
-          >
-            ×
-          </button>
-        </div>
-      )}
+            {/* Image */}
+            <img
+              src={activeImage.src}
+              alt={activeImage.alt}
+              onClick={(e) => {
+                e.stopPropagation();
+                setZoomLevel((z) => (z === 1 ? 2 : 1));
+              }}
+              style={{
+                position: "fixed",
+                top: "50%",
+                left: "50%",
+                transform: `translate(-50%, -50%) scale(${zoomLevel === 1 ? 1 : 1.5})`,
+                maxWidth: "90vw",
+                maxHeight: "90vh",
+                zIndex: 99999,
+                borderRadius: "16px",
+                boxShadow: "0 20px 60px rgba(0,0,0,0.6)",
+                cursor: zoomLevel === 1 ? "zoom-in" : "zoom-out",
+              }}
+            />
+
+            {/* CLOSE BUTTON — LOCKED */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                closeModal();
+              }}
+              style={{
+                position: "fixed",
+                top: "20px",
+                right: "20px",
+                zIndex: 100000,
+                width: "56px",
+                height: "56px",
+                borderRadius: "50%",
+                background: "white",
+                color: "black",
+                fontSize: "36px",
+                fontWeight: "bold",
+                border: "none",
+                cursor: "pointer",
+              }}
+              aria-label="Close image"
+            >
+              ×
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                showPrev();
+              }}
+              style={{
+                position: "fixed",
+                left: "20px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                zIndex: 100000,
+                width: "56px",
+                height: "56px",
+                borderRadius: "50%",
+                background: "white",
+                color: "black",
+                fontSize: "32px",
+                border: "none",
+                cursor: "pointer",
+              }}
+              aria-label="Previous image"
+            >
+              ‹
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                showNext();
+              }}
+              style={{
+                position: "fixed",
+                right: "20px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                zIndex: 100000,
+                width: "56px",
+                height: "56px",
+                borderRadius: "50%",
+                background: "white",
+                color: "black",
+                fontSize: "32px",
+                border: "none",
+                cursor: "pointer",
+              }}
+              aria-label="Next image"
+            >
+              ›
+            </button>
+          </>,
+          document.body,
+        )}
     </>
   );
 }

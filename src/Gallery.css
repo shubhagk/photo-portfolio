@@ -1,0 +1,47 @@
+.gallery-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+  padding: 100px; /* Added some padding so images don't touch the container edge */
+
+  /* Background stays INSIDE this 1200px box */
+
+  background-color: #160d04;
+  background-size: cover;
+  background-position: center;
+
+  max-width: 1200px;
+  margin: 0 auto; /* This centers the container */
+  border-radius: 12px; /* Optional: makes the background corners look cleaner */
+}
+
+.gallery-item {
+  /* Optional: add hover effects or borders */
+  border-radius: 8px;
+  overflow: hidden; /* Ensures image corners are rounded */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.gallery-item:hover {
+  transform: scale(1.05);
+}
+
+.gallery-image {
+  width: 100%; /* Makes image fill its container */
+  height: 200px; /* Fixed height for a consistent grid look */
+  object-fit: cover; /* Ensures images cover the area without stretching */
+  display: block;
+}
+
+/* Media query for smaller screens */
+@media (max-width: 600px) {
+  .gallery-container {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 8px; /* Smaller gap on mobile */
+  }
+
+  .gallery-image {
+    height: 150px; /* Shorter height on mobile */
+  }
+}

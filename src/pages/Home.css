@@ -1,0 +1,92 @@
+/* Full page wrapper */
+.background {
+  background-color: #0e0b07; /* Black background for a professional look */
+}
+
+.home-container {
+  background-color: #0e0b07; /* Black background for a professional look */
+  color: #fff;
+  width: 100%;
+  height: 100vh;
+}
+
+/* The Top Hero Area */
+.hero-section {
+  background-color: #20170d; /* Black background for a professional look */
+  /* Replace with your image file path */
+  /*background-image: url("../public/insta2.jpg");*/
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed; /* Creates the parallax scrolling effect */
+  height: 80vh; /* Takes up 80% of the screen height */
+}
+
+.hero-overlay {
+  background-color: #0e0b07; /* Black background for a professional look */
+  padding: 100px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.hero-overlay h1 {
+  background-color: #20170d; /* Black background for a professional look */
+  background-image: url("../public/insta2.jpg");
+  font-size: 3.5rem;
+  letter-spacing: 12px; /* Cinematic spacing like your image */
+  font-weight: 300;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+
+.subtitle {
+  font-size: 1.1rem;
+  letter-spacing: 4px;
+  opacity: 0.8;
+}
+
+/* The Section Below the Image */
+.home-content {
+  background-color: #20170d; /* Black background for a professional look */
+  padding: 80px 20px;
+  max-width: 800px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.info-block {
+  background-color: #20170d; /* Black background for a professional look */
+  padding: 80px 20px;
+  max-width: 800px;
+  margin: 0 auto;
+  text-align: center;
+}
+.info-block h2 {
+  letter-spacing: 6px;
+  margin-bottom: 20px;
+  font-weight: 400;
+}
+
+.info-block p {
+  line-height: 1.8;
+  font-size: 1.1rem;
+  color: #ccc;
+}
+
+.placeholder-box {
+  margin-top: 60px;
+  padding: 40px;
+  border: 1px solid #333;
+  color: #666;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .hero-overlay h1 {
+    font-size: 2rem;
+    letter-spacing: 6px;
+  }
+}

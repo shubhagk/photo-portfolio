@@ -1,0 +1,18 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  background-color: black;
+  color: white;
+  margin: 0;
+}
+a,
+a:hover {
+  color: #f59e0b; /* amber-300 */
+  text-decoration: wavy;
+}
+a:visited {
+  color: rgb(219, 134, 14);
+  text-decoration: none;
+}

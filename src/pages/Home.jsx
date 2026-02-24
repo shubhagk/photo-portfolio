@@ -6,7 +6,7 @@ const Home = () => {
       <Navbar />
 
       {/* Hero Section */}
-      <section className="relative h-screen bg-[url('/insta2.jpg')] bg-fixed bg-center bg-cover">
+      <section className="relative h-screen bg-[url('/public/wildlife/wildlife4.jpg')] bg-fixed bg-center bg-cover">
         <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-[#0a0806]" />
 
         <div className="relative h-full flex flex-col items-center justify-center text-center px-6">
@@ -29,7 +29,15 @@ const Home = () => {
         </div>
 
         <div className="absolute bottom-12 left-1/2 -translate-x-1/2 animate-bounce">
-          <svg className="w-6 h-6 text-white/60" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+          <svg
+            className="w-6 h-6 text-white/60"
+            fill="none"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
             <path d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
           </svg>
         </div>
@@ -49,14 +57,15 @@ const Home = () => {
           </div>
 
           <p className="text-gray-300 text-lg md:text-xl leading-relaxed text-center font-light mb-8">
-            From the vast savannas of Africa to the dense rainforests of South America,
-            I document the raw, unfiltered essence of wildlife in their natural habitats.
+            From the vast savannas of Africa to the dense rainforests of South
+            America, I document the raw, unfiltered essence of wildlife in their
+            natural habitats.
           </p>
 
           <p className="text-gray-400 text-base md:text-lg leading-relaxed text-center font-light">
-            Every photograph tells a story of survival, beauty, and the delicate balance
-            of our planet's ecosystems. My work aims to inspire conservation and deepen
-            our connection with the natural world.
+            Every photograph tells a story of survival, beauty, and the delicate
+            balance of our planet's ecosystems. My work aims to inspire
+            conservation and deepen our connection with the natural world.
           </p>
         </div>
       </section>
@@ -70,9 +79,18 @@ const Home = () => {
 
           <div className="grid md:grid-cols-3 gap-8">
             {[
-              { title: 'African Wildlife', desc: 'Big cats, elephants, and the great migration' },
-              { title: 'Avian Portraits', desc: 'Rare birds captured in stunning detail' },
-              { title: 'Wild Landscapes', desc: 'Breathtaking vistas and natural wonders' }
+              {
+                title: "African Wildlife",
+                desc: "Big cats, elephants, and the great migration",
+              },
+              {
+                title: "Avian Portraits",
+                desc: "Rare birds captured in stunning detail",
+              },
+              {
+                title: "Wild Landscapes",
+                desc: "Breathtaking vistas and natural wonders",
+              },
             ].map((item, i) => (
               <div key={i} className="group cursor-pointer">
                 <div className="bg-gradient-to-br from-amber-900/20 to-transparent border border-amber-900/30 p-8 rounded-lg hover:border-amber-700/50 transition-all duration-300">

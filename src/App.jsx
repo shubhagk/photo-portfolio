@@ -2,10 +2,8 @@
 import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
-// Components
-import Navbar from "./components/Navbar";
 import Gallery from "./components/Gallery";
-
+import Admin from "./pages/Admin";
 // Pages
 import Home from "./pages/Home";
 import Contact from "./pages/Contact";
@@ -19,6 +17,7 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/gallery" element={<Gallery />} />
+        <Route path="/admin" element={<Admin />} />
       </Routes>
     </BrowserRouter>
   );

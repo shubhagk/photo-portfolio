@@ -6,17 +6,19 @@ export default function Gallery() {
   const [activeImage, setActiveImage] = useState(null);
   const [zoomLevel, setZoomLevel] = useState(1);
 
-  const images = [
-    { id: 1, src: "/insta4.jpg", alt: "Image 1" },
-    { id: 2, src: "/insta2.jpg", alt: "Image 2" },
-    { id: 3, src: "/insta3.jpg", alt: "Image 3" },
-    { id: 4, src: "/insta1.jpg", alt: "Image 4" },
-    { id: 5, src: "/insta5.jpg", alt: "Image 5" },
-  ];
+  // Auto-load all images from /public (Vite only)
+  const imageModules = import.meta.glob("/public/*/*.{jpg,jpeg,png,webp}", {
+    eager: true,
+  });
 
-  const currentIndex = activeImage
-    ? images.findIndex((img) => img.id === activeImage.id)
-    : -1;
+  // Convert to your existing image structure
+  const images = Object.keys(imageModules).map((path, index) => ({
+    id: index + 1,
+    src: path.replace("/public", ""), // browser-accessible URL
+    alt: `Image ${index + 1}`,
+  }));
+
+  const currentIndex = images.findIndex((img) => img.id === activeImage?.id);
 
   const showPrev = () => {
     const prevIndex = (currentIndex - 1 + images.length) % images.length;
@@ -91,7 +93,8 @@ export default function Gallery() {
               Wildlife Gallery
             </h2>
             <p className="text-gray-400 max-w-2xl mx-auto">
-              A curated selection of moments frozen in time, showcasing the incredible diversity and beauty of our planet's wildlife.
+              A curated selection of moments frozen in time, showcasing the
+              incredible diversity and beauty of our planet's wildlife.
             </p>
           </div>
 
@@ -122,19 +125,23 @@ export default function Gallery() {
                     group-hover:scale-110
                   "
                 />
-                <div className="
+                <div
+                  className="
                   absolute inset-0
                   bg-gradient-to-t from-black/60 to-transparent
                   opacity-0 group-hover:opacity-100
                   transition-opacity duration-300
-                " />
-                <div className="
+                "
+                />
+                <div
+                  className="
                   absolute inset-0
                   border-2 border-amber-400/0
                   group-hover:border-amber-400/50
                   rounded-xl
                   transition-all duration-300
-                " />
+                "
+                />
               </div>
             ))}
           </div>

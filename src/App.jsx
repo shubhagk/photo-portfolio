@@ -8,6 +8,7 @@ import Admin from "./pages/Admin";
 import Home from "./pages/Home";
 import Contact from "./pages/Contact";
 
+import CategoryGallery from "./components/CategoryGallery.jsx";
 export default function App() {
   return (
     <BrowserRouter>
@@ -17,6 +18,7 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/gallery" element={<Gallery />} />
+        <Route path="/gallery/:category" element={<CategoryGallery />} />
         <Route path="/admin" element={<Admin />} />
       </Routes>
     </BrowserRouter>

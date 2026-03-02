@@ -5,6 +5,7 @@ import Navbar from "../components/Navbar.jsx";
 const API_URL = "https://www.taruitsolutions.com/gallery.php?page=1&limit=200";
 
 const IMAGE_ROOT = "https://www.taruitsolutions.com";
+const PLACEHOLDER_COUNT = 4;
 
 export default function Gallery() {
   const [categories, setCategories] = useState({});
@@ -49,30 +50,52 @@ export default function Gallery() {
 
           {!loading && Object.keys(categories).length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-              {Object.entries(categories).map(([category, thumb]) => (
-                <div
-                  key={category}
-                  onClick={() => navigate(`/gallery/${category}`)}
-                  className="cursor-pointer group"
-                >
-                  <div className="relative h-[320px] overflow-hidden rounded-xl bg-black">
-                    <img
-                      src={`${IMAGE_ROOT}/images/thumbs/${category.toLowerCase()}/${thumb}`}
-                      alt={category}
-                      width={800}
-                      height={600}
-                      fetchpriority="high"
-                      loading="lazy"
-                      decoding="async"
-                      className="w-full h-full object-cover group-hover:scale-110 transition"
-                    />
+              {(loading
+                ? Array.from({ length: PLACEHOLDER_COUNT })
+                : Object.entries(categories)
+              ).map((item, index) => {
+                const isPlaceholder = loading;
+
+                const category = isPlaceholder ? "Loading" : item[0];
+                const thumb = isPlaceholder ? null : item[1];
+
+                return (
+                  <div
+                    key={index}
+                    className={`relative h-[320px] rounded-xl overflow-hidden ${
+                      isPlaceholder ? "bg-[#1a1410] animate-pulse" : "bg-black"
+                    }`}
+                    onClick={
+                      isPlaceholder
+                        ? undefined
+                        : () => navigate(`/gallery/${category}`)
+                    }
+                  >
+                    {!isPlaceholder && (
+                      <img
+                        src={`${IMAGE_ROOT}/images/thumbs/${category.toLowerCase()}/${thumb}`}
+                        alt={category}
+                        loading="lazy"
+                        decoding="async"
+                        width={800}
+                        height={600}
+                        className="absolute inset-0 w-full h-full object-cover transition duration-700"
+                        onLoad={(e) =>
+                          e.currentTarget.parentElement.classList.remove(
+                            "animate-pulse",
+                          )
+                        }
+                      />
+                    )}
+
                     <div className="absolute inset-0 bg-black/40" />
-                    <h2 className="absolute inset-0 flex items-center justify-center text-3xl font-serif text-white tracking-widest capitalize">
-                      {category}
+
+                    <h2 className="absolute inset-0 flex items-center justify-center text-3xl font-serif text-white tracking-widest capitalize opacity-70">
+                      {isPlaceholder ? "" : category}
                     </h2>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
 

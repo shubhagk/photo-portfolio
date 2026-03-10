@@ -9,7 +9,7 @@ const Home = () => {
       <Navbar />
 
       {/* Hero Section */}
-      <section className="relative min-h-screen bg-[url('/wildlife/wildlife4.jpg')] bg-scroll bg-center bg-cover">
+      <section className="relative h-screen bg-[url('/wildlife/wildlife4.jpg')] bg-scroll bg-center bg-cover">
         <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-[#0a0806]" />
 
         <div className="relative h-full flex flex-col items-center justify-center text-center px-6">
@@ -47,7 +47,7 @@ const Home = () => {
       </section>
 
       {/* Mission Section */}
-      <section className="bg-gradient-to-b from-[#0a0806] to-[#1a1410] py-32 px-6">
+      <section className="bg-gradient-to-b from-[#0a0806] to-[#1a1410] py-12 px-6">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-sm tracking-[0.5em] font-light text-amber-400 mb-4 uppercase">

@@ -1,172 +1,152 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { createPortal } from "react-dom";
 import Navbar from "../components/Navbar.jsx";
 
-const API_URL = "https://www.taruitsolutions.com/gallery.php?page=1&limit=1000";
-
-const IMAGE_ROOT = "https://www.taruitsolutions.com";
-const PLACEHOLDER_COUNT = 8;
+const API_URL = "https://xd9awgtwlj.execute-api.eu-north-1.amazonaws.com";
 
 export default function CategoryGallery() {
   const { category } = useParams();
   const navigate = useNavigate();
 
   const [images, setImages] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [active, setActive] = useState(null);
+  const [activeIndex, setActiveIndex] = useState(null);
 
-  /* ---------------- Fetch images ---------------- */
+  /* -------------------------------
+     FETCH CATEGORY IMAGES
+     ------------------------------- */
   useEffect(() => {
-    setLoading(true);
-
-    fetch(`${API_URL}&ts=${Date.now()}`)
+    fetch(API_URL)
       .then((res) => res.json())
-      .then((data) => {
-        const filtered = (data.images || []).filter(
-          (img) => img.category === category && img.thumb && img.full,
-        );
-        setImages(filtered);
-        setLoading(false);
-      })
-      .catch(() => {
-        setImages([]);
-        setLoading(false);
-      });
+      .then((data) =>
+        setImages(data.filter((img) => img.category === category)),
+      );
   }, [category]);
 
-  /* ---------------- Lock scroll when lightbox open ---------------- */
-  useEffect(() => {
-    if (active !== null) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [active]);
+  /* -------------------------------
+     LIGHTBOX CONTROLS
+     ------------------------------- */
+  const close = () => setActiveIndex(null);
 
-  /* ---------------- Keyboard navigation ---------------- */
+  const showPrev = () =>
+    setActiveIndex((i) => (i - 1 + images.length) % images.length);
+
+  const showNext = () => setActiveIndex((i) => (i + 1) % images.length);
+
+  /* -------------------------------
+     KEYBOARD SUPPORT
+     ------------------------------- */
   useEffect(() => {
-    if (active === null) return;
+    if (activeIndex === null) return;
 
     const handleKey = (e) => {
-      if (e.key === "Escape") setActive(null);
-      if (e.key === "ArrowRight") setActive((i) => (i + 1) % images.length);
-      if (e.key === "ArrowLeft")
-        setActive((i) => (i - 1 + images.length) % images.length);
+      if (e.key === "Escape") close();
+      if (e.key === "ArrowLeft") showPrev();
+      if (e.key === "ArrowRight") showNext();
     };
 
     window.addEventListener("keydown", handleKey);
-    return () => window.removeEventListener("keydown", handleKey);
-  }, [active, images.length]);
+    document.body.style.overflow = "hidden";
 
+    return () => {
+      window.removeEventListener("keydown", handleKey);
+      document.body.style.overflow = "auto";
+    };
+  }, [activeIndex]);
+
+  /* -------------------------------
+     RENDER
+     ------------------------------- */
   return (
     <>
-      {/* Navbar */}
+      {/* NAVBAR */}
       <div className="fixed top-0 z-50 w-full h-20 bg-[#160d04]">
         <Navbar />
       </div>
 
-      {/* Page */}
-      <div className="min-h-screen bg-[#0a0806] pt-28 pb-20 px-6">
-        <div className="max-w-7xl mx-auto">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-12">
-            <h1 className="text-4xl font-serif text-white capitalize">
-              {category}
-            </h1>
-            <button
-              onClick={() => navigate(-1)}
-              className="text-gray-300 hover:text-white"
-            >
-              ← Back
-            </button>
-          </div>
+      {/* PAGE */}
+      <div className="min-h-screen bg-[#0a0806] pt-24 pb-20">
+        <div className="max-w-7xl mx-auto px-6">
+          {/* BACK */}
+          <button
+            onClick={() => navigate("/gallery")}
+            className="mb-8 text-amber-400 hover:underline"
+          >
+            ← Back to Gallery
+          </button>
 
-          {/* Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          <h1 className="text-3xl md:text-4xl font-serif mb-12 capitalize">
+            {category}
+          </h1>
+
+          {/* GRID */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {images.map((img, index) => (
               <div
-                key={img.thumb}
-                className="relative overflow-hidden rounded-lg bg-[#1a1410] animate-pulse"
-                style={{ aspectRatio: "4 / 3" }}
-                onClick={() => setActive(index)}
+                key={img.key}
+                onClick={() => setActiveIndex(index)}
+                className="cursor-pointer group relative overflow-hidden rounded-xl aspect-[4/3]"
               >
                 <img
-                  src={`${IMAGE_ROOT}/images/thumbs/${category.toLowerCase()}/${img.thumb}`}
-                  alt=""
+                  src={img.url}
+                  alt={img.key}
                   loading="lazy"
-                  decoding="async"
-                  width={600}
-                  height={450}
-                  className="absolute inset-0 w-full h-full object-cover transition-opacity duration-500 opacity-0"
-                  onLoad={(e) => {
-                    e.currentTarget.style.opacity = "1";
-                    e.currentTarget.parentElement.classList.remove(
-                      "animate-pulse",
-                    );
-                  }}
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                 />
               </div>
             ))}
           </div>
-
-          {/* Empty state */}
-          {!loading && images.length === 0 && (
-            <p className="text-center text-gray-400 mt-16">
-              No images found in this category.
-            </p>
-          )}
         </div>
       </div>
 
-      {/* ---------------- Lightbox ---------------- */}
-      {active !== null && images[active] && (
-        <div
-          className="fixed inset-0 bg-black/90 flex items-center justify-center"
-          style={{ zIndex: 99999 }}
-          onClick={() => setActive(null)}
-        >
-          {/* Image */}
-          <img
-            src={`${IMAGE_ROOT}/images/full/${category.toLowerCase()}/${images[active].full}`}
-            alt=""
-            className="max-h-[90vh] max-w-[90vw] object-contain"
-            onClick={(e) => e.stopPropagation()}
-          />
+      {/* -------------------------------
+         LIGHTBOX (PORTAL)
+         ------------------------------- */}
+      {activeIndex !== null &&
+        createPortal(
+          <>
+            {/* BACKDROP */}
+            <div
+              onClick={close}
+              className="fixed inset-0 bg-black/90 z-[99998]"
+            />
 
-          {/* Close */}
-          <button
-            onClick={() => setActive(null)}
-            className="absolute top-6 right-6 text-white text-3xl"
-          >
-            ✕
-          </button>
+            {/* IMAGE */}
+            <img
+              src={images[activeIndex].url}
+              alt=""
+              className="fixed inset-0 m-auto max-w-[90vw] max-h-[90vh] z-[99999] rounded-xl shadow-2xl"
+            />
 
-          {/* Prev */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setActive((i) => (i - 1 + images.length) % images.length);
-            }}
-            className="absolute left-6 text-white text-5xl hover:opacity-80"
-          >
-            ‹
-          </button>
+            {/* CLOSE */}
+            <button
+              onClick={close}
+              className="fixed top-5 right-5 z-[100000] w-14 h-14 rounded-full bg-white text-black text-4xl font-bold"
+              aria-label="Close"
+            >
+              ×
+            </button>
 
-          {/* Next */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setActive((i) => (i + 1) % images.length);
-            }}
-            className="absolute right-6 text-white text-5xl hover:opacity-80"
-          >
-            ›
-          </button>
-        </div>
-      )}
+            {/* PREV */}
+            <button
+              onClick={showPrev}
+              className="fixed left-5 top-1/2 -translate-y-1/2 z-[100000] w-14 h-14 rounded-full bg-white text-black text-3xl"
+              aria-label="Previous"
+            >
+              ‹
+            </button>
+
+            {/* NEXT */}
+            <button
+              onClick={showNext}
+              className="fixed right-5 top-1/2 -translate-y-1/2 z-[100000] w-14 h-14 rounded-full bg-white text-black text-3xl"
+              aria-label="Next"
+            >
+              ›
+            </button>
+          </>,
+          document.body,
+        )}
     </>
   );
 }

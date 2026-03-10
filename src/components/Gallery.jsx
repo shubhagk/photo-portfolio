@@ -1,109 +1,266 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import Navbar from "../components/Navbar.jsx";
 
-const API_URL = "https://www.taruitsolutions.com/gallery.php?page=1&limit=200";
-
-const IMAGE_ROOT = "https://www.taruitsolutions.com";
-const PLACEHOLDER_COUNT = 4;
-
 export default function Gallery() {
-  const [categories, setCategories] = useState({});
-  const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
+  const [activeImage, setActiveImage] = useState(null);
+  const [zoomLevel, setZoomLevel] = useState(1);
+
+  // Auto-load all images from /public (Vite only)
+  const imageModules = import.meta.glob("/public/*/*.{jpg,jpeg,png,webp}", {
+    eager: true,
+  });
+
+  // Convert to your existing image structure
+  const images = Object.keys(imageModules).map((path, index) => ({
+    id: index + 1,
+    src: path.replace("/public", ""), // browser-accessible URL
+    alt: `Image ${index + 1}`,
+  }));
+
+  const currentIndex = images.findIndex((img) => img.id === activeImage?.id);
+
+  const showPrev = () => {
+    const prevIndex = (currentIndex - 1 + images.length) % images.length;
+    setActiveImage(images[prevIndex]);
+    setZoomLevel(1);
+  };
+
+  const showNext = () => {
+    const nextIndex = (currentIndex + 1) % images.length;
+    setActiveImage(images[nextIndex]);
+    setZoomLevel(1);
+  };
 
   useEffect(() => {
-    fetch(`${API_URL}&ts=${Date.now()}`)
-      .then((res) => res.json())
-      .then((data) => {
-        const grouped = {};
+    const handleKey = (e) => {
+      if (!activeImage) return;
 
-        (data.images || []).forEach((img) => {
-          if (!img.category || !img.thumb) return;
+      if (e.key === "Escape") closeModal();
+      if (e.key === "ArrowLeft") showPrev();
+      if (e.key === "ArrowRight") showNext();
+    };
 
-          if (!grouped[img.category]) {
-            grouped[img.category] = img.thumb;
-          }
-        });
+    window.addEventListener("keydown", handleKey);
+    document.body.style.overflow = activeImage ? "hidden" : "auto";
 
-        setCategories(grouped);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, []);
+    return () => {
+      window.removeEventListener("keydown", handleKey);
+      document.body.style.overflow = "auto";
+    };
+  }, [activeImage]);
+
+  const closeModal = () => {
+    setActiveImage(null);
+    setZoomLevel(1);
+  };
+
+  // ESC + body scroll lock (single effect)
+  useEffect(() => {
+    const handleKey = (e) => {
+      if (e.key === "Escape") closeModal();
+    };
+
+    if (activeImage) {
+      document.body.style.overflow = "hidden";
+      window.addEventListener("keydown", handleKey);
+    } else {
+      document.body.style.overflow = "auto";
+    }
+
+    return () => {
+      window.removeEventListener("keydown", handleKey);
+      document.body.style.overflow = "auto";
+    };
+  }, [activeImage]);
 
   return (
     <>
+      {/* Navbar */}
       <div className="fixed top-0 z-50 w-full h-20 bg-[#160d04]">
         <Navbar />
       </div>
 
-      <div className="min-h-screen bg-[#0a0806] pt-28 pb-20">
-        <div className="max-w-6xl mx-auto px-6">
-          <h1 className="text-center text-4xl font-serif mb-16 text-white">
-            Gallery
-          </h1>
+      {/* Gallery Grid */}
+      <div className="min-h-screen bg-[#0a0806] pt-24 pb-20">
+        <div className="max-w-7xl mx-auto px-6 py-16">
+          <div className="text-center mb-16">
+            <h1 className="text-sm tracking-[0.5em] font-light text-amber-400 mb-4 uppercase">
+              Collection
+            </h1>
+            <div className="w-16 h-px bg-amber-400 mx-auto mb-8" />
+            <h2 className="text-4xl md:text-5xl font-serif font-light mb-6">
+              Wildlife Gallery
+            </h2>
+            <p className="text-gray-400 max-w-2xl mx-auto">
+              A curated selection of moments frozen in time, showcasing the
+              incredible diversity and beauty of our planet's wildlife.
+            </p>
+          </div>
 
-          {loading && (
-            <p className="text-center text-gray-400">Loading gallery…</p>
-          )}
-
-          {!loading && Object.keys(categories).length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-              {(loading
-                ? Array.from({ length: PLACEHOLDER_COUNT })
-                : Object.entries(categories)
-              ).map((item, index) => {
-                const isPlaceholder = loading;
-
-                const category = isPlaceholder ? "Loading" : item[0];
-                const thumb = isPlaceholder ? null : item[1];
-
-                return (
-                  <div
-                    key={index}
-                    className={`relative h-[320px] rounded-xl overflow-hidden ${
-                      isPlaceholder ? "bg-[#1a1410] animate-pulse" : "bg-black"
-                    }`}
-                    onClick={
-                      isPlaceholder
-                        ? undefined
-                        : () => navigate(`/gallery/${category}`)
-                    }
-                  >
-                    {!isPlaceholder && (
-                      <img
-                        src={`${IMAGE_ROOT}/images/thumbs/${category.toLowerCase()}/${thumb}`}
-                        alt={category}
-                        loading="lazy"
-                        decoding="async"
-                        width={800}
-                        height={600}
-                        className="absolute inset-0 w-full h-full object-cover transition duration-700"
-                        onLoad={(e) =>
-                          e.currentTarget.parentElement.classList.remove(
-                            "animate-pulse",
-                          )
-                        }
-                      />
-                    )}
-
-                    <div className="absolute inset-0 bg-black/40" />
-
-                    <h2 className="absolute inset-0 flex items-center justify-center text-3xl font-serif text-white tracking-widest capitalize opacity-70">
-                      {isPlaceholder ? "" : category}
-                    </h2>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          {!loading && Object.keys(categories).length === 0 && (
-            <p className="text-center text-gray-500">No images found.</p>
-          )}
+          <div
+            className="
+              grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3
+              gap-6
+            "
+          >
+            {images.map((image) => (
+              <div
+                key={image.id}
+                onClick={() => setActiveImage(image)}
+                className="
+                  group cursor-pointer
+                  relative overflow-hidden
+                  rounded-xl
+                  aspect-[4/3]
+                "
+              >
+                <img
+                  src={image.src}
+                  alt={image.alt}
+                  className="
+                    w-full h-full
+                    object-cover
+                    transition-transform duration-700
+                    group-hover:scale-110
+                  "
+                />
+                <div
+                  className="
+                  absolute inset-0
+                  bg-gradient-to-t from-black/60 to-transparent
+                  opacity-0 group-hover:opacity-100
+                  transition-opacity duration-300
+                "
+                />
+                <div
+                  className="
+                  absolute inset-0
+                  border-2 border-amber-400/0
+                  group-hover:border-amber-400/50
+                  rounded-xl
+                  transition-all duration-300
+                "
+                />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
+
+      {/* LIGHTBOX (PORTAL) */}
+      {activeImage &&
+        createPortal(
+          <>
+            {/* Backdrop */}
+            <div
+              onClick={closeModal}
+              style={{
+                position: "fixed",
+                inset: 0,
+                background: "rgba(0,0,0,0.9)",
+                zIndex: 99998,
+              }}
+            />
+
+            {/* Image */}
+            <img
+              src={activeImage.src}
+              alt={activeImage.alt}
+              onClick={(e) => {
+                e.stopPropagation();
+                setZoomLevel((z) => (z === 1 ? 2 : 1));
+              }}
+              style={{
+                position: "fixed",
+                top: "50%",
+                left: "50%",
+                transform: `translate(-50%, -50%) scale(${zoomLevel === 1 ? 1 : 1.5})`,
+                maxWidth: "90vw",
+                maxHeight: "90vh",
+                zIndex: 99999,
+                borderRadius: "16px",
+                boxShadow: "0 20px 60px rgba(0,0,0,0.6)",
+                cursor: zoomLevel === 1 ? "zoom-in" : "zoom-out",
+              }}
+            />
+
+            {/* CLOSE BUTTON — LOCKED */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                closeModal();
+              }}
+              style={{
+                position: "fixed",
+                top: "20px",
+                right: "20px",
+                zIndex: 100000,
+                width: "56px",
+                height: "56px",
+                borderRadius: "50%",
+                background: "white",
+                color: "black",
+                fontSize: "36px",
+                fontWeight: "bold",
+                border: "none",
+                cursor: "pointer",
+              }}
+              aria-label="Close image"
+            >
+              ×
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                showPrev();
+              }}
+              style={{
+                position: "fixed",
+                left: "20px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                zIndex: 100000,
+                width: "56px",
+                height: "56px",
+                borderRadius: "50%",
+                background: "white",
+                color: "black",
+                fontSize: "32px",
+                border: "none",
+                cursor: "pointer",
+              }}
+              aria-label="Previous image"
+            >
+              ‹
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                showNext();
+              }}
+              style={{
+                position: "fixed",
+                right: "20px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                zIndex: 100000,
+                width: "56px",
+                height: "56px",
+                borderRadius: "50%",
+                background: "white",
+                color: "black",
+                fontSize: "32px",
+                border: "none",
+                cursor: "pointer",
+              }}
+              aria-label="Next image"
+            >
+              ›
+            </button>
+          </>,
+          document.body,
+        )}
     </>
   );
 }

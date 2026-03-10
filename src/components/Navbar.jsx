@@ -4,6 +4,7 @@ export default function Navbar() {
   const links = [
     { label: "Home", to: "/" },
     { label: "Gallery", to: "/gallery" },
+    { label: "Search", to: "/search" },
     { label: "Contact", to: "/contact" },
   ];
 

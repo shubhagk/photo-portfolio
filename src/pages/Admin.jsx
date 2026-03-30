@@ -85,8 +85,6 @@ export default function Admin() {
 
               <input
                 type="file"
-                webkitdirectory="true"
-                directory="true"
                 multiple
                 accept="image/*"
                 onChange={handleFileChange}

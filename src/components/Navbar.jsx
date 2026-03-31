@@ -20,7 +20,7 @@ export default function Navbar() {
             className="rounded-md ring-2 ring-white/10 group-hover:ring-amber-400/40 transition-all duration-300"
           />
           <span className="font-serif text-xl tracking-wider text-white group-hover:text-amber-400 transition-colors hidden sm:block">
-            VetInWild
+            Vet In Wild
           </span>
         </NavLink>
 

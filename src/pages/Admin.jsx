@@ -1,9 +1,20 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Navbar from "../components/Navbar.jsx";
 
 export default function Admin() {
   const [images, setImages] = useState([]);
   const [imageName, setImageName] = useState("");
+  const [categories, setCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [newCategory, setNewCategory] = useState("");
+
+  // 🔥 Fetch categories
+  useEffect(() => {
+    fetch("http://localhost:5000/categories")
+      .then((res) => res.json())
+      .then((data) => setCategories(data))
+      .catch((err) => console.error(err));
+  }, []);
 
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
@@ -16,118 +27,163 @@ export default function Admin() {
     setImages(previews);
   };
 
-  const handleSubmit = (e) => {
+  // 🔥 Cleanup previews
+  useEffect(() => {
+    return () => {
+      images.forEach((img) => URL.revokeObjectURL(img.preview));
+    };
+  }, [images]);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
+    const finalCategory = newCategory || selectedCategory;
+
     if (!images.length) {
-      alert("Please select at least one image");
+      alert("Please select images");
       return;
     }
 
-    // Example: prepare form data for backend
+    if (!finalCategory) {
+      alert("Please select or create a category");
+      return;
+    }
+
     const formData = new FormData();
     formData.append("imageName", imageName);
+    formData.append("category", finalCategory);
 
     images.forEach((img) => {
       formData.append("images", img.file);
     });
 
-    console.log("Ready to upload:", formData);
+    try {
+      const res = await fetch("http://localhost:5000/upload", {
+        method: "POST",
+        body: formData,
+      });
 
-    // TODO: send formData to backend using fetch / axios
+      const data = await res.json();
+      console.log(data);
+
+      alert("Upload successful!");
+
+      setImages([]);
+      setImageName("");
+      setNewCategory("");
+      setSelectedCategory("");
+    } catch (err) {
+      console.error(err);
+      alert("Upload failed");
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#0a0806] to-[#1a1410]">
+    <div className="min-h-screen bg-gradient-to-b from-[#0a0806] to-[#1a1410] text-white">
       <Navbar />
 
       <section className="pt-32 pb-20 px-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-16">
-            <h1 className="text-sm tracking-[0.5em] font-light text-amber-400 mb-4 uppercase">
-              Admin Panel
-            </h1>
-            <div className="w-16 h-px bg-amber-400 mx-auto mb-8" />
-            <h2 className="text-4xl md:text-5xl font-serif font-light mb-6">
-              Upload New Image(s)
-            </h2>
-            <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-              Select one or more images to upload to the gallery.
-            </p>
+        <div className="max-w-3xl mx-auto space-y-6">
+          {/* Category Select */}
+          <div>
+            <label className="text-gray-400 text-sm">Select Category</label>
+            <select
+              value={selectedCategory}
+              onChange={(e) => {
+                setSelectedCategory(e.target.value);
+                setNewCategory("");
+              }}
+              className="w-full p-3 bg-black border border-gray-700 rounded"
+            >
+              <option value="">-- Select Category --</option>
+              {categories.map((cat, i) => (
+                <option key={i} value={cat}>
+                  {cat}
+                </option>
+              ))}
+            </select>
           </div>
 
-          <form onSubmit={handleSubmit} className="max-w-2xl mx-auto space-y-6">
-            {/* Image Name */}
-            <div>
-              <label className="block text-sm text-gray-400 mb-2 tracking-wide">
-                Image Name
-              </label>
-              <input
-                type="text"
-                value={imageName}
-                onChange={(e) => setImageName(e.target.value)}
-                placeholder="Safari at Dusk"
-                className="
-                  w-full bg-black/40 border border-white/10
-                  px-5 py-4 rounded-lg
-                  text-white placeholder-gray-600
-                  focus:outline-none focus:border-amber-400/50
-                  transition-colors
-                "
-              />
-            </div>
+          {/* New Category */}
+          <div>
+            <label className="text-gray-400 text-sm">
+              Or Create New Category
+            </label>
+            <input
+              type="text"
+              value={newCategory}
+              onChange={(e) => {
+                setNewCategory(e.target.value);
+                setSelectedCategory("");
+              }}
+              placeholder="e.g. wildlife"
+              className="w-full p-3 bg-black border border-gray-700 rounded"
+            />
+          </div>
 
-            {/* File Upload */}
-            <div>
-              <label className="block text-sm text-gray-400 mb-2 tracking-wide">
-                Select Image Folder
-              </label>
+          {/* File Upload */}
+          <div>
+            <label className="block text-sm text-gray-400 mb-2 tracking-wide">
+              Upload Images
+            </label>
 
-              <input
-                type="file"
-                multiple
-                accept="image/*"
-                onChange={handleFileChange}
-                className="block w-full text-gray-300"
-              />
+            {/* Hidden input */}
+            <input
+              type="file"
+              multiple
+              accept="image/*"
+              onChange={handleFileChange}
+              id="fileInput"
+              className="hidden"
+            />
 
-              <p className="text-xs text-gray-500 mt-2">
-                Select a folder containing images (all images inside will be
-                uploaded)
-              </p>
-            </div>
-
-            {/* Preview */}
-            {images.length > 0 && (
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-6">
-                {images.map((img, index) => (
-                  <img
-                    key={index}
-                    src={img.preview}
-                    alt="Preview"
-                    className="rounded-lg border border-white/10 object-cover h-40 w-full"
-                  />
-                ))}
-              </div>
-            )}
-
-            {/* Submit */}
+            {/* Custom button */}
             <button
-              type="submit"
+              type="button"
+              onClick={() => document.getElementById("fileInput").click()}
               className="
-                w-full md:w-auto
-                bg-gradient-to-r from-amber-600 to-amber-500
-                hover:from-amber-500 hover:to-amber-400
-                text-black font-medium
-                px-12 py-4 rounded-lg
-                tracking-wider uppercase text-sm
-                transition-all duration-300
-                hover:shadow-lg hover:shadow-amber-500/20
-              "
+      bg-amber-600 hover:bg-amber-500
+      text-black px-6 py-3 rounded-lg
+      text-sm tracking-wide
+      transition
+    "
             >
-              Upload
+              Choose Images
             </button>
-          </form>
+
+            {/* File names */}
+            <div className="mt-3 text-sm">
+              {images.length > 0 ? (
+                <ul className="text-green-400 space-y-1">
+                  {images.map((img, index) => (
+                    <li key={index}>{img.file.name}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-red-400">No file chosen</p>
+              )}
+            </div>
+          </div>
+
+          {/* Preview */}
+          {images.length > 0 && (
+            <div className="grid grid-cols-3 gap-3">
+              {images.map((img, i) => (
+                <img
+                  key={i}
+                  src={img.preview}
+                  className="h-32 w-full object-cover rounded"
+                />
+              ))}
+            </div>
+          )}
+
+          <button
+            onClick={handleSubmit}
+            className="bg-amber-500 px-6 py-3 rounded text-black"
+          >
+            Upload
+          </button>
         </div>
       </section>
     </div>

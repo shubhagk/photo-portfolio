@@ -15,7 +15,8 @@ const Home = () => {
     fetch(`${API_URL}/images`)
       .then((res) => res.json())
       .then((data) => {
-        setImages(data.slice(0, 6)); // limit for hero
+        const shuffled = data.sort(() => Math.random() - 0.5);
+        setImages(shuffled.slice(0, 6)); // limit for hero
       })
       .catch((err) => console.error(err));
   }, []);

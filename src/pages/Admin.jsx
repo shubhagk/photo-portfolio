@@ -10,7 +10,8 @@ export default function Admin() {
 
   // 🔥 Fetch categories
   useEffect(() => {
-    fetch("http://localhost:5000/categories")
+    //fetch("http://localhost:5000/categories")
+    fetch("https://photo-portfolio-admin.onrender.com/categories")
       .then((res) => res.json())
       .then((data) => setCategories(data))
       .catch((err) => console.error(err));
@@ -58,10 +59,14 @@ export default function Admin() {
     });
 
     try {
-      const res = await fetch("http://localhost:5000/upload", {
-        method: "POST",
-        body: formData,
-      });
+      //const res = await fetch("http://localhost:5000/upload",{}
+      const res = await fetch(
+        "https://photo-portfolio-admin.onrender.com/upload",
+        {
+          method: "POST",
+          body: formData,
+        },
+      );
 
       const data = await res.json();
       console.log(data);

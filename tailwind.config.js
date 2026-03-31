@@ -9,12 +9,12 @@ export default {
 
       // ✅ ADD BELOW (inside extend)
       animation: {
-        scroll: "scroll 25s linear infinite",
+        zoom: "zoom 8s ease-in-out infinite",
       },
       keyframes: {
-        scroll: {
-          "0%": { transform: "translateX(0)" },
-          "100%": { transform: "translateX(-50%)" },
+        zoom: {
+          "0%": { transform: "scale(1)" },
+          "100%": { transform: "scale(1.1)" },
         },
       },
     },

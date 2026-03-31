@@ -2,39 +2,63 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar.jsx";
 
-const API_URL = "https://xd9awgtwlj.execute-api.eu-north-1.amazonaws.com";
+const API_URL = "https://photo-portfolio-admin.onrender.com";
 
 const Home = () => {
   const navigate = useNavigate();
-  const [heroImages, setHeroImages] = useState([]);
 
-  // 🔥 Fetch images from API
+  const [images, setImages] = useState([]);
+  const [index, setIndex] = useState(0);
+
+  // 🔥 Fetch images
   useEffect(() => {
     fetch(`${API_URL}/images`)
       .then((res) => res.json())
       .then((data) => {
-        // adjust based on your API response
-        setHeroImages(data.slice(0, 8));
+        setImages(data.slice(0, 6)); // limit for hero
       })
       .catch((err) => console.error(err));
   }, []);
+
+  // 🔥 Auto slide
+  useEffect(() => {
+    if (images.length === 0) return;
+
+    const interval = setInterval(() => {
+      setIndex((prev) => (prev + 1) % images.length);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [images]);
 
   return (
     <div className="w-full min-h-screen bg-[#0a0806] text-white">
       <Navbar />
 
-      {/* Hero Section */}
-      <section className="relative h-screen bg-[url('/wildlife/wildlife4.jpg')] bg-scroll bg-center bg-cover">
-        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-[#0a0806]" />
+      {/* 🎬 Cinematic Hero Section */}
+      <section className="relative h-screen overflow-hidden">
+        {/* Slides */}
+        {images.map((img, i) => (
+          <div
+            key={i}
+            className={`absolute inset-0 transition-opacity duration-1000 ${
+              i === index ? "opacity-100 z-10" : "opacity-0"
+            }`}
+          >
+            <img
+              src={img.url}
+              alt="wildlife"
+              className="w-full h-full object-cover scale-110 animate-zoom"
+            />
+          </div>
+        ))}
+
+        {/* Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/40 to-[#0a0806] z-20" />
 
         {/* Center Content */}
-        <div className="relative h-full flex flex-col items-center justify-center text-center px-6 z-10">
-          <h1
-            className="
-            text-4xl md:text-7xl lg:text-8xl
-            tracking-[0.2em] md:tracking-[0.25em] font-light  mb-6  animate-fade-in
-  "
-          >
+        <div className="relative z-30 h-full flex flex-col items-center justify-center text-center px-6">
+          <h1 className="text-4xl md:text-7xl lg:text-8xl tracking-[0.2em] font-light uppercase mb-6">
             Vet in Wild
           </h1>
 
@@ -45,34 +69,8 @@ const Home = () => {
           <div className="w-24 h-px bg-gradient-to-r from-transparent via-white to-transparent opacity-60" />
         </div>
 
-        {/* 🔥 Rolling Images */}
-        {heroImages.length > 0 && (
-          <div className="absolute bottom-24 w-full overflow-hidden px-6 z-10">
-            <div className="flex gap-4 animate-scroll">
-              {heroImages.map((img, i) => (
-                <img
-                  key={i}
-                  src={img.url} // 🔥 from API
-                  alt="wildlife"
-                  className="h-24 w-40 object-cover rounded-xl shadow-lg hover:scale-105 transition duration-300"
-                />
-              ))}
-
-              {/* Duplicate for smooth infinite scroll */}
-              {heroImages.map((img, i) => (
-                <img
-                  key={`dup-${i}`}
-                  src={img.url}
-                  alt="wildlife"
-                  className="h-24 w-40 object-cover rounded-xl shadow-lg"
-                />
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* Scroll Arrow */}
-        <div className="absolute bottom-12 left-1/2 -translate-x-1/2 animate-bounce pointer-events-none">
+        <div className="absolute bottom-12 left-1/2 -translate-x-1/2 animate-bounce z-30 pointer-events-none">
           <svg
             className="w-6 h-6 text-white/60"
             fill="none"

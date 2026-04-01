@@ -15,22 +15,44 @@ const Home = () => {
     fetch(`${API_URL}/images`)
       .then((res) => res.json())
       .then((data) => {
-        const shuffled = data.sort(() => Math.random() - 0.5);
-        setImages(shuffled.slice(0, 6)); // limit for hero
+        // ✅ filter only shuffle (case-safe)
+        const shuffleImages = data.filter(
+          (img) => img.category?.toLowerCase() === "shuffle",
+        );
+
+        // ✅ shuffle safely
+        const shuffled = [...shuffleImages].sort(() => Math.random() - 0.5);
+
+        // ✅ take only 4
+        setImages(shuffled.slice(0, 4));
       })
       .catch((err) => console.error(err));
   }, []);
 
-  // 🔥 Auto slide
+  // ✅ reset index when images load (fix blank screen)
+  useEffect(() => {
+    setIndex(0);
+  }, [images]);
+
+  // 🔥 Auto slide (safe)
   useEffect(() => {
     if (images.length === 0) return;
 
     const interval = setInterval(() => {
       setIndex((prev) => (prev + 1) % images.length);
-    }, 1000);
+    }, 3000); // change speed here
 
     return () => clearInterval(interval);
-  }, [images]);
+  }, [images.length]);
+
+  // ✅ loading fallback (prevents blank screen)
+  if (images.length === 0) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-[#0a0806] text-white">
+        Loading...
+      </div>
+    );
+  }
 
   return (
     <div className="w-full min-h-screen bg-[#0a0806] text-white">
@@ -42,8 +64,8 @@ const Home = () => {
         {images.map((img, i) => (
           <div
             key={i}
-            className={`absolute inset-0 transition-opacity duration-1000 ${
-              i === index ? "opacity-100 z-10" : "opacity-0"
+            className={`absolute inset-0 transition-opacity duration-700 ${
+              i === index % images.length ? "opacity-100 z-10" : "opacity-0"
             }`}
           >
             <img
@@ -121,65 +143,27 @@ const Home = () => {
           </h2>
 
           <div className="grid md:grid-cols-3 gap-8">
-            {/* African Wildlife */}
-            <div
-              role="button"
-              tabIndex={0}
-              onClick={() => navigate("/gallery/wildlife")}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") navigate("/gallery/wildlife");
-              }}
-              className="group cursor-pointer"
-            >
-              <div className="bg-gradient-to-br from-amber-900/20 to-transparent border border-amber-900/30 p-8 rounded-lg hover:border-amber-700/50 transition-all duration-300">
-                <h3 className="text-xl font-serif mb-3 group-hover:text-amber-400 transition-colors">
-                  African Wildlife
-                </h3>
-                <p className="text-gray-400 text-sm leading-relaxed">
-                  Big cats, elephants, and the great migration
-                </p>
+            {["wildlife", "birds", "nature"].map((cat, i) => (
+              <div
+                key={i}
+                role="button"
+                tabIndex={0}
+                onClick={() => navigate(`/gallery/${cat}`)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") navigate(`/gallery/${cat}`);
+                }}
+                className="group cursor-pointer"
+              >
+                <div className="bg-gradient-to-br from-amber-900/20 to-transparent border border-amber-900/30 p-8 rounded-lg hover:border-amber-700/50 transition-all duration-300">
+                  <h3 className="text-xl font-serif mb-3 group-hover:text-amber-400 transition-colors capitalize">
+                    {cat}
+                  </h3>
+                  <p className="text-gray-400 text-sm leading-relaxed">
+                    Explore {cat} photography
+                  </p>
+                </div>
               </div>
-            </div>
-
-            {/* Avian Portraits */}
-            <div
-              role="button"
-              tabIndex={0}
-              onClick={() => navigate("/gallery/birds")}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") navigate("/gallery/birds");
-              }}
-              className="group cursor-pointer"
-            >
-              <div className="bg-gradient-to-br from-amber-900/20 to-transparent border border-amber-900/30 p-8 rounded-lg hover:border-amber-700/50 transition-all duration-300">
-                <h3 className="text-xl font-serif mb-3 group-hover:text-amber-400 transition-colors">
-                  Avian Portraits
-                </h3>
-                <p className="text-gray-400 text-sm leading-relaxed">
-                  Rare birds captured in stunning detail
-                </p>
-              </div>
-            </div>
-
-            {/* Wild Landscapes */}
-            <div
-              role="button"
-              tabIndex={0}
-              onClick={() => navigate("/gallery/nature")}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") navigate("/gallery/nature");
-              }}
-              className="group cursor-pointer"
-            >
-              <div className="bg-gradient-to-br from-amber-900/20 to-transparent border border-amber-900/30 p-8 rounded-lg hover:border-amber-700/50 transition-all duration-300">
-                <h3 className="text-xl font-serif mb-3 group-hover:text-amber-400 transition-colors">
-                  Wild Landscapes
-                </h3>
-                <p className="text-gray-400 text-sm leading-relaxed">
-                  Breathtaking vistas and natural wonders
-                </p>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>

@@ -19,7 +19,12 @@ export default function Gallery() {
       .then((data) => {
         const grouped = {};
 
-        data.forEach((img) => {
+        // ✅ remove shuffle
+        const filteredData = data.filter(
+          (img) => img.category?.toLowerCase() !== "shuffle",
+        );
+
+        filteredData.forEach((img) => {
           if (!grouped[img.category]) {
             grouped[img.category] = {
               ...img,

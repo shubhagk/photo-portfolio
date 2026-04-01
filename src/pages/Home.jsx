@@ -15,37 +15,32 @@ const Home = () => {
     fetch(`${API_URL}/images`)
       .then((res) => res.json())
       .then((data) => {
-        // ✅ filter only shuffle (case-safe)
         const shuffleImages = data.filter(
           (img) => img.category?.toLowerCase() === "shuffle",
         );
 
-        // ✅ shuffle safely
         const shuffled = [...shuffleImages].sort(() => Math.random() - 0.5);
 
-        // ✅ take only 4
         setImages(shuffled.slice(0, 4));
       })
       .catch((err) => console.error(err));
   }, []);
-
-  // ✅ reset index when images load (fix blank screen)
-  useEffect(() => {
-    setIndex(0);
-  }, [images]);
 
   // 🔥 Auto slide (safe)
   useEffect(() => {
     if (images.length === 0) return;
 
     const interval = setInterval(() => {
-      setIndex((prev) => (prev + 1) % images.length);
-    }, 3000); // change speed here
+      setIndex((prev) => prev + 1); // no modulo here
+    }, 3000);
 
     return () => clearInterval(interval);
   }, [images.length]);
 
-  // ✅ loading fallback (prevents blank screen)
+  // ✅ Safe index calculation (fixes warning + blank screen)
+  const safeIndex = images.length > 0 ? index % images.length : 0;
+
+  // ✅ loading fallback
   if (images.length === 0) {
     return (
       <div className="h-screen flex items-center justify-center bg-[#0a0806] text-white">
@@ -65,7 +60,7 @@ const Home = () => {
           <div
             key={i}
             className={`absolute inset-0 transition-opacity duration-700 ${
-              i === index % images.length ? "opacity-100 z-10" : "opacity-0"
+              i === safeIndex ? "opacity-100 z-10" : "opacity-0"
             }`}
           >
             <img

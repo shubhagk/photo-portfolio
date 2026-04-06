@@ -1,12 +1,26 @@
-export default function DeleteImage({ id, refresh }) {
+const DELETE_API =
+  "https://52frn34zrwzdqn4s27m7nsicke0jymwv.lambda-url.eu-north-1.on.aws/";
+
+export default function DeleteImage({ url, refresh }) {
   const handleDelete = async () => {
     if (!window.confirm("Delete this image?")) return;
 
-    await fetch(`https://photo-portfolio-admin.onrender.com/delete/${id}`, {
-      method: "DELETE",
-    });
+    try {
+      const key = url.split(".net/")[1];
 
-    refresh();
+      console.log("Deleting key:", key); // 👈 ADD THIS
+
+      await fetch(`${DELETE_API}?key=${encodeURIComponent(key)}`);
+
+      // wait a bit for Lambda + S3 sync
+      setTimeout(() => {
+        refresh();
+      }, 500);
+
+      refresh();
+    } catch (err) {
+      console.error("Delete failed:", err);
+    }
   };
 
   return (

@@ -1,19 +1,38 @@
 import { useState, useEffect } from "react";
 
+const API_URL = "https://d2keqyvqexxfrb.cloudfront.net";
+
+// ⚠️ Replace with your S3 upload endpoint (we'll keep it simple for now)
+const UPLOAD_API = "https://YOUR_UPLOAD_LAMBDA_URL";
+
 export default function Upload() {
   const [images, setImages] = useState([]);
-  const [imageName, setImageName] = useState("");
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("");
   const [newCategory, setNewCategory] = useState("");
 
+  /* -------------------------------
+     GET CATEGORIES FROM JSON
+  --------------------------------*/
   useEffect(() => {
-    fetch("https://photo-portfolio-admin.onrender.com/categories")
+    fetch(`${API_URL}/images.json`)
       .then((res) => res.json())
-      .then(setCategories)
+      .then((data) => {
+        const unique = [
+          ...new Set(
+            data
+              .map((img) => img.category)
+              .filter((c) => c && c.toLowerCase() !== "shuffle"),
+          ),
+        ];
+        setCategories(unique);
+      })
       .catch(console.error);
   }, []);
 
+  /* -------------------------------
+     FILE SELECT
+  --------------------------------*/
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
 
@@ -31,40 +50,41 @@ export default function Upload() {
     };
   }, [images]);
 
+  /* -------------------------------
+     UPLOAD (S3 via Lambda)
+  --------------------------------*/
   const handleSubmit = async () => {
-    const finalCategory = newCategory || selectedCategory;
+    const category = (newCategory || selectedCategory || "").trim();
 
     if (!images.length) return alert("Select images");
-    if (!finalCategory) return alert("Select category");
-
-    const formData = new FormData();
-    formData.append("imageName", imageName);
-    formData.append("category", finalCategory);
-
-    images.forEach((img) => {
-      formData.append("images", img.file);
-    });
+    if (!category) return alert("Select category");
 
     try {
-      await fetch("https://photo-portfolio-admin.onrender.com/upload", {
-        method: "POST",
-        body: formData,
-      });
+      for (const img of images) {
+        const formData = new FormData();
+        formData.append("file", img.file);
+        formData.append("category", category);
+
+        await fetch(UPLOAD_API, {
+          method: "POST",
+          body: formData,
+        });
+      }
 
       alert("Upload successful");
 
       setImages([]);
-      setImageName("");
       setSelectedCategory("");
       setNewCategory("");
-    } catch {
+    } catch (err) {
+      console.error(err);
       alert("Upload failed");
     }
   };
 
   return (
     <div className="space-y-6">
-      {/* Category */}
+      {/* CATEGORY SELECT */}
       <select
         value={selectedCategory}
         onChange={(e) => {
@@ -79,6 +99,7 @@ export default function Upload() {
         ))}
       </select>
 
+      {/* NEW CATEGORY */}
       <input
         type="text"
         placeholder="New category"
@@ -90,7 +111,7 @@ export default function Upload() {
         className="w-full p-3 bg-black border border-gray-700 rounded"
       />
 
-      {/* Upload */}
+      {/* FILE INPUT */}
       <input
         type="file"
         multiple
@@ -98,13 +119,14 @@ export default function Upload() {
         onChange={handleFileChange}
       />
 
-      {/* Preview */}
+      {/* PREVIEW */}
       <div className="grid grid-cols-3 gap-3">
         {images.map((img, i) => (
           <img key={i} src={img.preview} className="h-32 object-cover" />
         ))}
       </div>
 
+      {/* SUBMIT */}
       <button
         onClick={handleSubmit}
         className="bg-amber-500 px-6 py-3 rounded text-black"

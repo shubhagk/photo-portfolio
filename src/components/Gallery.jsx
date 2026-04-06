@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar.jsx";
 
-const API_URL = "https://xd9awgtwlj.execute-api.eu-north-1.amazonaws.com";
+const API_URL = "https://d2keqyvqexxfrb.cloudfront.net";
 
 export default function Gallery() {
   const navigate = useNavigate();
@@ -11,15 +11,14 @@ export default function Gallery() {
   const [search, setSearch] = useState("");
 
   /* -------------------------------
-     FETCH IMAGES FROM API
+     FETCH IMAGES FROM JSON
   --------------------------------*/
   useEffect(() => {
-    fetch(API_URL)
+    fetch(`${API_URL}/images.json`) // ✅ FIXED
       .then((res) => res.json())
       .then((data) => {
         const grouped = {};
 
-        // ✅ remove shuffle
         const filteredData = data.filter(
           (img) => img.category?.toLowerCase() !== "shuffle",
         );
@@ -27,7 +26,8 @@ export default function Gallery() {
         filteredData.forEach((img) => {
           if (!grouped[img.category]) {
             grouped[img.category] = {
-              ...img,
+              category: img.category,
+              url: img.url, // cover image
               count: 1,
             };
           } else {
@@ -47,9 +47,6 @@ export default function Gallery() {
     cat.category.toLowerCase().includes(search.toLowerCase()),
   );
 
-  /* -------------------------------
-     RENDER
-  --------------------------------*/
   return (
     <>
       {/* NAVBAR */}
@@ -126,10 +123,10 @@ export default function Gallery() {
                 {/* OVERLAY */}
                 <div
                   className="
-                  absolute inset-0
-                  bg-gradient-to-t from-black/80 via-black/40 to-transparent
-                  flex flex-col items-center justify-center
-                "
+                    absolute inset-0
+                    bg-gradient-to-t from-black/80 via-black/40 to-transparent
+                    flex flex-col items-center justify-center
+                  "
                 >
                   <h3 className="text-white text-2xl font-serif capitalize">
                     {cat.category}
@@ -143,12 +140,12 @@ export default function Gallery() {
                 {/* BORDER EFFECT */}
                 <div
                   className="
-                  absolute inset-0
-                  border-2 border-amber-400/0
-                  group-hover:border-amber-400/40
-                  rounded-xl
-                  transition-all duration-300
-                "
+                    absolute inset-0
+                    border-2 border-amber-400/0
+                    group-hover:border-amber-400/40
+                    rounded-xl
+                    transition-all duration-300
+                  "
                 />
               </div>
             ))}

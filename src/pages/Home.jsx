@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar.jsx";
 
-const API_URL = "https://photo-portfolio-admin.onrender.com";
+const API_URL = "https://d2keqyvqexxfrb.cloudfront.net";
 
 const Home = () => {
   const navigate = useNavigate();
@@ -10,9 +10,11 @@ const Home = () => {
   const [images, setImages] = useState([]);
   const [index, setIndex] = useState(0);
 
-  // 🔥 Fetch images
+  const fallback = `${API_URL}/wildlife/wildlife1.webp`;
+
+  // ✅ Fetch from JSON (FIXED)
   useEffect(() => {
-    fetch(`${API_URL}/images`)
+    fetch(`${API_URL}/images.json`)
       .then((res) => res.json())
       .then((data) => {
         const shuffleImages = data.filter(
@@ -26,37 +28,27 @@ const Home = () => {
       .catch((err) => console.error(err));
   }, []);
 
-  // 🔥 Auto slide (safe)
+  // ✅ Auto slide
   useEffect(() => {
     if (images.length === 0) return;
 
     const interval = setInterval(() => {
-      setIndex((prev) => prev + 1); // no modulo here
+      setIndex((prev) => prev + 1);
     }, 3000);
 
     return () => clearInterval(interval);
   }, [images.length]);
 
-  // ✅ Safe index calculation (fixes warning + blank screen)
   const safeIndex = images.length > 0 ? index % images.length : 0;
-
-  // ✅ loading fallback
-  if (images.length === 0) {
-    return (
-      <div className="h-screen flex items-center justify-center bg-[#0a0806] text-white">
-        Loading...
-      </div>
-    );
-  }
 
   return (
     <div className="w-full min-h-screen bg-[#0a0806] text-white">
       <Navbar />
 
-      {/* 🎬 Cinematic Hero Section */}
+      {/* 🎬 Hero Section */}
       <section className="relative h-screen overflow-hidden">
         {/* Slides */}
-        {images.map((img, i) => (
+        {(images.length > 0 ? images : [{ url: fallback }]).map((img, i) => (
           <div
             key={i}
             className={`absolute inset-0 transition-opacity duration-700 ${
@@ -66,6 +58,7 @@ const Home = () => {
             <img
               src={img.url}
               alt="wildlife"
+              loading={i === 0 ? "eager" : "lazy"} // ✅ FIXED
               className="w-full h-full object-cover scale-110 animate-zoom"
             />
           </div>

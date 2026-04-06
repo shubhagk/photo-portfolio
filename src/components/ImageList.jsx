@@ -1,19 +1,26 @@
 import { useEffect, useState } from "react";
 import DeleteImage from "./DeleteImage";
 
+const API_URL = "https://d2keqyvqexxfrb.cloudfront.net";
+
 export default function ImageList({ category }) {
   const [images, setImages] = useState([]);
 
   const fetchImages = async () => {
-    let url = "https://photo-portfolio-admin.onrender.com/images";
+    try {
+      const res = await fetch(`${API_URL}/images.json`);
+      const data = await res.json();
 
-    if (category) {
-      url += `?category=${category}`;
+      const filtered = category
+        ? data.filter(
+            (img) => img.category?.toLowerCase() === category.toLowerCase(),
+          )
+        : data;
+
+      setImages(filtered);
+    } catch (err) {
+      console.error(err);
     }
-
-    const res = await fetch(url);
-    const data = await res.json();
-    setImages(data);
   };
 
   useEffect(() => {
@@ -22,11 +29,12 @@ export default function ImageList({ category }) {
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-      {images.map((img) => (
-        <div key={img._id} className="relative">
+      {images.map((img, index) => (
+        <div key={index} className="relative">
           <img src={img.url} className="h-40 w-full object-cover rounded" />
 
-          <DeleteImage id={img._id} refresh={fetchImages} />
+          {/* ✅ DELETE BUTTON HERE */}
+          <DeleteImage url={img.url} refresh={fetchImages} />
         </div>
       ))}
     </div>

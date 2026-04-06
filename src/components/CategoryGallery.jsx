@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { createPortal } from "react-dom";
 import Navbar from "../components/Navbar.jsx";
 
-const API_URL = "https://xd9awgtwlj.execute-api.eu-north-1.amazonaws.com";
+const API_URL = "https://d2keqyvqexxfrb.cloudfront.net";
 
 export default function CategoryGallery() {
   const { category } = useParams();
@@ -18,10 +18,13 @@ export default function CategoryGallery() {
      FETCH CATEGORY IMAGES
   --------------------------------*/
   useEffect(() => {
-    fetch(API_URL)
+    fetch(`${API_URL}/images.json`) // ✅ FIXED
       .then((res) => res.json())
       .then((data) => {
-        const filtered = data.filter((img) => img.category === category);
+        const filtered = data.filter(
+          (img) => img.category?.toLowerCase() === category.toLowerCase(),
+        );
+
         setImages(filtered);
       })
       .catch((err) => console.error("Image load error:", err));
@@ -37,7 +40,9 @@ export default function CategoryGallery() {
     }
 
     const matches = images
-      .filter((img) => img.key.toLowerCase().includes(search.toLowerCase()))
+      .filter(
+        (img) => img.url.toLowerCase().includes(search.toLowerCase()), // ✅ FIXED
+      )
       .slice(0, 6);
 
     setSuggestions(matches);
@@ -46,8 +51,8 @@ export default function CategoryGallery() {
   /* -------------------------------
      FILTER IMAGES
   --------------------------------*/
-  const filteredImages = images.filter((img) =>
-    img.key.toLowerCase().includes(search.toLowerCase()),
+  const filteredImages = images.filter(
+    (img) => img.url.toLowerCase().includes(search.toLowerCase()), // ✅ FIXED
   );
 
   /* -------------------------------
@@ -81,7 +86,7 @@ export default function CategoryGallery() {
       window.removeEventListener("keydown", handleKey);
       document.body.style.overflow = "auto";
     };
-  }, [activeIndex]);
+  }, [activeIndex, filteredImages.length]);
 
   return (
     <>
@@ -90,10 +95,9 @@ export default function CategoryGallery() {
         <Navbar />
       </div>
 
-      {/* PAGE */}
       <div className="min-h-screen bg-[#0a0806] pt-24 pb-20">
         <div className="max-w-7xl mx-auto px-6">
-          {/* BACK BUTTON */}
+          {/* BACK */}
           <button
             onClick={() => navigate("/gallery")}
             className="mb-8 text-amber-400 hover:underline"
@@ -112,49 +116,24 @@ export default function CategoryGallery() {
               placeholder="Search photos..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="
-                w-full max-w-md
-                px-5 py-3
-                rounded-full
-                bg-[#1a140d]
-                text-white
-                border border-amber-400/30
-                focus:outline-none
-                focus:border-amber-400
-              "
+              className="w-full max-w-md px-5 py-3 rounded-full bg-[#1a140d] text-white border border-amber-400/30 focus:outline-none focus:border-amber-400"
             />
 
             {/* SUGGESTIONS */}
             {suggestions.length > 0 && (
-              <div
-                className="
-                  absolute top-full mt-2
-                  w-full max-w-md
-                  bg-[#1a140d]
-                  border border-amber-400/20
-                  rounded-xl
-                  shadow-xl
-                  overflow-hidden
-                  z-40
-                "
-              >
-                {suggestions.map((img) => (
+              <div className="absolute top-full mt-2 w-full max-w-md bg-[#1a140d] border border-amber-400/20 rounded-xl shadow-xl z-40">
+                {suggestions.map((img, i) => (
                   <div
-                    key={img.key}
+                    key={i}
                     onClick={() => {
                       const index = filteredImages.findIndex(
-                        (i) => i.key === img.key,
+                        (image) => image.url === img.url,
                       );
                       setActiveIndex(index);
                       setSearch("");
                       setSuggestions([]);
                     }}
-                    className="
-                      flex items-center gap-3
-                      p-3
-                      hover:bg-[#241a10]
-                      cursor-pointer
-                    "
+                    className="flex items-center gap-3 p-3 hover:bg-[#241a10] cursor-pointer"
                   >
                     <img
                       src={img.url}
@@ -163,7 +142,7 @@ export default function CategoryGallery() {
                     />
 
                     <span className="text-gray-200 text-sm truncate">
-                      {img.key.split("/").pop()}
+                      {img.url.split("/").pop()}
                     </span>
                   </div>
                 ))}
@@ -171,17 +150,17 @@ export default function CategoryGallery() {
             )}
           </div>
 
-          {/* IMAGE GRID */}
+          {/* GRID */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredImages.map((img, index) => (
               <div
-                key={img.key}
+                key={index}
                 onClick={() => setActiveIndex(index)}
                 className="cursor-pointer group relative overflow-hidden rounded-xl aspect-[4/3]"
               >
                 <img
                   src={img.url}
-                  alt={img.key}
+                  alt=""
                   loading="lazy"
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                 />
@@ -195,68 +174,34 @@ export default function CategoryGallery() {
       {activeIndex !== null &&
         createPortal(
           <>
-            {/* BACKDROP */}
             <div
               onClick={close}
               className="fixed inset-0 bg-black/90 z-[99998]"
             />
 
-            {/* IMAGE */}
             <img
               src={filteredImages[activeIndex].url}
               alt=""
-              className="
-                fixed inset-0
-                m-auto
-                max-w-[90vw]
-                max-h-[90vh]
-                z-[99999]
-                rounded-xl
-                shadow-2xl
-              "
+              className="fixed inset-0 m-auto max-w-[90vw] max-h-[90vh] z-[99999] rounded-xl"
             />
 
-            {/* CLOSE */}
             <button
               onClick={close}
-              className="
-                fixed top-5 right-5
-                z-[100000]
-                w-14 h-14
-                rounded-full
-                bg-white text-black
-                text-4xl font-bold
-              "
+              className="fixed top-5 right-5 z-[100000] w-14 h-14 rounded-full bg-white text-black text-4xl"
             >
               ×
             </button>
 
-            {/* PREV */}
             <button
               onClick={showPrev}
-              className="
-                fixed left-5 top-1/2 -translate-y-1/2
-                z-[100000]
-                w-14 h-14
-                rounded-full
-                bg-white text-black
-                text-3xl
-              "
+              className="fixed left-5 top-1/2 z-[100000] w-14 h-14 bg-white text-black text-3xl"
             >
               ‹
             </button>
 
-            {/* NEXT */}
             <button
               onClick={showNext}
-              className="
-                fixed right-5 top-1/2 -translate-y-1/2
-                z-[100000]
-                w-14 h-14
-                rounded-full
-                bg-white text-black
-                text-3xl
-              "
+              className="fixed right-5 top-1/2 z-[100000] w-14 h-14 bg-white text-black text-3xl"
             >
               ›
             </button>

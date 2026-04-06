@@ -69,6 +69,7 @@ export default function Upload() {
           method: "POST",
           body: formData,
         });
+        window.location.reload();
       }
 
       alert("Upload successful");

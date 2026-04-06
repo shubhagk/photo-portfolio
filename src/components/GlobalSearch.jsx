@@ -10,8 +10,35 @@ export default function GlobalSearch() {
   const [results, setResults] = useState([]);
   const [activeIndex, setActiveIndex] = useState(null);
 
+  const LOAD_COUNT = 16;
+  const [visibleCount, setVisibleCount] = useState(LOAD_COUNT);
+
   /* -----------------------------
-     LOAD IMAGES (FIXED)
+     RESET PAGINATION ON SEARCH
+  ----------------------------- */
+  useEffect(() => {
+    setVisibleCount(LOAD_COUNT);
+  }, [search]);
+
+  /* -----------------------------
+     INFINITE SCROLL
+  ----------------------------- */
+  useEffect(() => {
+    const handleScroll = () => {
+      if (
+        window.innerHeight + window.scrollY >=
+        document.body.offsetHeight - 200
+      ) {
+        setVisibleCount((prev) => prev + LOAD_COUNT);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  /* -----------------------------
+     LOAD IMAGES
   ----------------------------- */
   useEffect(() => {
     fetch(`${API_URL}/images.json`)
@@ -20,14 +47,13 @@ export default function GlobalSearch() {
         const clean = (data || []).filter(
           (img) => img.category?.toLowerCase() !== "shuffle",
         );
-
         setImages(clean);
       })
       .catch(console.error);
   }, []);
 
   /* -----------------------------
-     LIVE SEARCH (FIXED)
+     LIVE SEARCH
   ----------------------------- */
   useEffect(() => {
     if (!search.trim()) {
@@ -39,8 +65,8 @@ export default function GlobalSearch() {
 
     const matches = images.filter((img) => {
       return (
-        img.category?.toLowerCase().includes(q) || // search category
-        img.url?.toLowerCase().includes(q) // search filename
+        img.category?.toLowerCase().includes(q) ||
+        img.url?.toLowerCase().includes(q)
       );
     });
 
@@ -48,11 +74,18 @@ export default function GlobalSearch() {
   }, [search, images]);
 
   /* -----------------------------
-     LIGHTBOX (unchanged)
+     PAGINATED RESULTS
+  ----------------------------- */
+  const visibleResults = results.slice(0, visibleCount);
+
+  /* -----------------------------
+     LIGHTBOX
   ----------------------------- */
   const close = () => setActiveIndex(null);
+
   const showPrev = () =>
     setActiveIndex((i) => (i - 1 + results.length) % results.length);
+
   const showNext = () => setActiveIndex((i) => (i + 1) % results.length);
 
   useEffect(() => {
@@ -71,10 +104,11 @@ export default function GlobalSearch() {
       window.removeEventListener("keydown", handleKey);
       document.body.style.overflow = "auto";
     };
-  }, [activeIndex]);
+  }, [activeIndex, results.length]);
 
   return (
     <>
+      {/* NAVBAR */}
       <div className="fixed top-0 z-50 w-full h-20 bg-[#160d04]">
         <Navbar />
       </div>
@@ -99,34 +133,48 @@ export default function GlobalSearch() {
           {/* RESULTS */}
           {results.length > 0 && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {results.map((img, index) => (
-                <div
-                  key={index}
-                  onClick={() => setActiveIndex(index)}
-                  className="cursor-pointer group overflow-hidden rounded-xl aspect-[4/3] relative"
-                >
-                  <img
-                    src={img.url}
-                    alt=""
-                    loading="lazy"
-                    className="w-full h-full object-cover group-hover:scale-110 transition"
-                  />
+              {visibleResults.map((img) => {
+                const realIndex = results.findIndex(
+                  (image) => image.url === img.url,
+                );
 
-                  <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-xs text-gray-300 px-3 py-1">
-                    {img.category}
+                return (
+                  <div
+                    key={realIndex}
+                    onClick={() => setActiveIndex(realIndex)}
+                    className="cursor-pointer group overflow-hidden rounded-xl aspect-[4/3] relative"
+                  >
+                    <img
+                      src={img.thumbnail || img.url}
+                      alt=""
+                      loading="lazy"
+                      className="w-full h-full object-cover group-hover:scale-110 transition"
+                    />
+
+                    <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-xs text-gray-300 px-3 py-1">
+                      {img.category}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
 
+          {/* LOADING */}
+          {visibleCount < results.length && (
+            <p className="text-center text-gray-400 mt-10">
+              Loading more results...
+            </p>
+          )}
+
+          {/* EMPTY */}
           {search && results.length === 0 && (
             <p className="text-center text-gray-400">No results found</p>
           )}
         </div>
       </div>
 
-      {/* LIGHTBOX unchanged */}
+      {/* LIGHTBOX */}
       {activeIndex !== null &&
         createPortal(
           <>
@@ -137,6 +185,7 @@ export default function GlobalSearch() {
 
             <img
               src={results[activeIndex].url}
+              alt=""
               className="fixed inset-0 m-auto max-w-[90vw] max-h-[90vh] rounded-xl z-[99999]"
             />
           </>,

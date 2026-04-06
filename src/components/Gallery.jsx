@@ -3,18 +3,20 @@ import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar.jsx";
 
 const API_URL = "https://d2keqyvqexxfrb.cloudfront.net";
+const ITEMS_PER_PAGE = 6; // 👈 adjust (6 = 2 rows, 12 = bigger pages)
 
 export default function Gallery() {
   const navigate = useNavigate();
 
   const [categories, setCategories] = useState([]);
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1); // ✅ pagination state
 
   /* -------------------------------
      FETCH IMAGES FROM JSON
   --------------------------------*/
   useEffect(() => {
-    fetch(`${API_URL}/images.json`) // ✅ FIXED
+    fetch(`${API_URL}/images.json`)
       .then((res) => res.json())
       .then((data) => {
         const grouped = {};
@@ -27,7 +29,7 @@ export default function Gallery() {
           if (!grouped[img.category]) {
             grouped[img.category] = {
               category: img.category,
-              url: img.url, // cover image
+              url: img.url,
               count: 1,
             };
           } else {
@@ -46,6 +48,22 @@ export default function Gallery() {
   const filteredCategories = categories.filter((cat) =>
     cat.category.toLowerCase().includes(search.toLowerCase()),
   );
+
+  /* -------------------------------
+     PAGINATION LOGIC
+  --------------------------------*/
+  const totalPages = Math.ceil(filteredCategories.length / ITEMS_PER_PAGE);
+
+  const startIndex = (page - 1) * ITEMS_PER_PAGE;
+  const currentCategories = filteredCategories.slice(
+    startIndex,
+    startIndex + ITEMS_PER_PAGE,
+  );
+
+  // Reset to page 1 when searching
+  useEffect(() => {
+    setPage(1);
+  }, [search]);
 
   return (
     <>
@@ -97,7 +115,7 @@ export default function Gallery() {
 
           {/* CATEGORY GRID */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredCategories.map((cat) => (
+            {currentCategories.map((cat) => (
               <div
                 key={cat.category}
                 onClick={() => navigate(`/gallery/${cat.category}`)}
@@ -150,6 +168,31 @@ export default function Gallery() {
               </div>
             ))}
           </div>
+
+          {/* 🔥 PAGINATION CONTROLS */}
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center gap-6 mt-12">
+              <button
+                onClick={() => setPage((p) => p - 1)}
+                disabled={page === 1}
+                className="px-4 py-2 bg-amber-400/20 text-white rounded disabled:opacity-30"
+              >
+                Prev
+              </button>
+
+              <span className="text-gray-300">
+                Page {page} of {totalPages}
+              </span>
+
+              <button
+                onClick={() => setPage((p) => p + 1)}
+                disabled={page === totalPages}
+                className="px-4 py-2 bg-amber-400/20 text-white rounded disabled:opacity-30"
+              >
+                Next
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </>

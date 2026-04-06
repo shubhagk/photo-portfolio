@@ -13,6 +13,25 @@ export default function CategoryGallery() {
   const [activeIndex, setActiveIndex] = useState(null);
   const [search, setSearch] = useState("");
   const [suggestions, setSuggestions] = useState([]);
+  const LOAD_COUNT = 12;
+  const [visibleCount, setVisibleCount] = useState(LOAD_COUNT);
+  useEffect(() => {
+    const handleScroll = () => {
+      if (
+        window.innerHeight + window.scrollY >=
+        document.body.offsetHeight - 200
+      ) {
+        setVisibleCount((prev) => prev + LOAD_COUNT);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  useEffect(() => {
+    setVisibleCount(LOAD_COUNT);
+  }, [search, category]);
 
   /* -------------------------------
      FETCH CATEGORY IMAGES
@@ -51,9 +70,11 @@ export default function CategoryGallery() {
   /* -------------------------------
      FILTER IMAGES
   --------------------------------*/
-  const filteredImages = images.filter(
-    (img) => img.url.toLowerCase().includes(search.toLowerCase()), // ✅ FIXED
+  const filteredImages = images.filter((img) =>
+    img.url.toLowerCase().includes(search.toLowerCase()),
   );
+
+  const visibleImages = filteredImages.slice(0, visibleCount);
 
   /* -------------------------------
      LIGHTBOX CONTROLS
@@ -167,6 +188,11 @@ export default function CategoryGallery() {
               </div>
             ))}
           </div>
+          {visibleCount < filteredImages.length && (
+            <p className="text-center text-gray-400 mt-10">
+              Loading more images...
+            </p>
+          )}
         </div>
       </div>
 

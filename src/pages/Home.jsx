@@ -6,6 +6,7 @@ const API_URL = "https://d2keqyvqexxfrb.cloudfront.net";
 
 const Home = () => {
   const [images, setImages] = useState([]);
+  const [allImages, setAllImages] = useState([]); // ✅ for categories
   const [index, setIndex] = useState(0);
   const navigate = useNavigate();
   const fallback = `${API_URL}/wildlife/wildlife1.jpeg`;
@@ -17,6 +18,9 @@ const Home = () => {
       .then((data) => {
         const imagesArray = Array.isArray(data) ? data : data.images || [];
 
+        setAllImages(imagesArray); // ✅ store all images
+
+        // ✅ Group by category
         const grouped = {};
 
         imagesArray.forEach((img) => {
@@ -27,6 +31,7 @@ const Home = () => {
           grouped[category].push(img);
         });
 
+        // ✅ One random per category (for hero slider)
         const oneRandomPerCategory = Object.keys(grouped).map((category) => {
           const imgs = grouped[category];
           return imgs[Math.floor(Math.random() * imgs.length)];
@@ -51,13 +56,21 @@ const Home = () => {
   const safeIndex = images.length > 0 ? index % images.length : 0;
   const current = images[safeIndex] || { url: fallback };
 
+  // ✅ Extract categories dynamically
+  const categories = [
+    ...new Set(
+      allImages
+        .map((img) => img.category?.toLowerCase())
+        .filter((cat) => cat && cat !== "shuffle"),
+    ),
+  ];
+
   return (
     <div className="w-full min-h-screen bg-[#0a0806] text-white">
       <Navbar />
 
       {/* HERO */}
       <section className="relative h-screen overflow-hidden">
-        {/* ✅ SINGLE IMAGE (NO STACKING BUGS) */}
         <img
           src={current.url}
           alt="wildlife"
@@ -67,12 +80,11 @@ const Home = () => {
               navigate(`/gallery/${encodeURIComponent(current.category)}`);
             }
           }}
+          onError={(e) => (e.target.src = fallback)}
         />
 
-        {/* ✅ Overlay (non-blocking) */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/40 to-[#0a0806] z-20 pointer-events-none" />
 
-        {/* TEXT */}
         <div className="relative z-30 h-full flex flex-col items-center justify-center text-center px-6 pointer-events-none">
           <h1 className="text-4xl md:text-7xl lg:text-8xl tracking-[0.2em] font-light uppercase mb-6">
             Vet in Wild
@@ -116,21 +128,47 @@ const Home = () => {
           </h2>
 
           <div className="grid md:grid-cols-3 gap-8">
-            {["wildlife", "birds", "nature"].map((cat, i) => (
-              <div
-                key={i}
-                role="button"
-                tabIndex={0}
-                onClick={() => navigate(`/gallery/${cat}`)}
-                className="cursor-pointer border p-8 rounded-lg hover:border-amber-400"
-              >
-                <h3 className="text-xl capitalize">{cat}</h3>
-                <p className="text-gray-400 text-sm">
-                  Explore {cat} photography
-                </p>
-              </div>
-            ))}
+            {categories.map((cat, i) => {
+              const preview = allImages.find(
+                (img) => img.category?.toLowerCase() === cat,
+              );
+
+              return (
+                <div
+                  key={i}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => navigate(`/gallery/${cat}`)}
+                  onKeyDown={(e) =>
+                    e.key === "Enter" && navigate(`/gallery/${cat}`)
+                  }
+                  className="cursor-pointer border rounded-lg overflow-hidden hover:border-amber-400 transition duration-300 hover:shadow-lg"
+                >
+                  {/* ✅ Preview Image */}
+                  {preview && (
+                    <img
+                      src={preview.url}
+                      alt={cat}
+                      className="h-48 w-full object-cover"
+                      onError={(e) => (e.target.src = fallback)}
+                    />
+                  )}
+
+                  <div className="p-6">
+                    <h3 className="text-xl capitalize font-semibold">{cat}</h3>
+                    <p className="text-gray-400 text-sm">
+                      Explore {cat} photography
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
           </div>
+
+          {/* ✅ Empty state */}
+          {categories.length === 0 && (
+            <p className="text-gray-400 mt-6">No categories found.</p>
+          )}
         </div>
       </section>
     </div>

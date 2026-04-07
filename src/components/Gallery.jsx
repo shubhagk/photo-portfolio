@@ -6,12 +6,10 @@ const API_URL = "https://d2keqyvqexxfrb.cloudfront.net";
 const ITEMS_PER_PAGE = 6; // 👈 adjust (6 = 2 rows, 12 = bigger pages)
 
 export default function Gallery() {
-  const navigate = useNavigate();
-
   const [categories, setCategories] = useState([]);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1); // ✅ pagination state
-
+  const navigate = useNavigate();
   /* -------------------------------
      FETCH IMAGES FROM JSON
   --------------------------------*/

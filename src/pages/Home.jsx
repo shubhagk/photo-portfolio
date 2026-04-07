@@ -1,29 +1,38 @@
-import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar.jsx";
+import { useNavigate } from "react-router-dom";
 
 const API_URL = "https://d2keqyvqexxfrb.cloudfront.net";
 
 const Home = () => {
-  const navigate = useNavigate();
-
   const [images, setImages] = useState([]);
   const [index, setIndex] = useState(0);
+  const navigate = useNavigate();
+  const fallback = `${API_URL}/wildlife/wildlife1.jpeg`;
 
-  const fallback = `${API_URL}/wildlife/wildlife1.webp`;
-
-  // ✅ Fetch from JSON (FIXED)
+  // ✅ Fetch images
   useEffect(() => {
     fetch(`${API_URL}/images.json`)
       .then((res) => res.json())
       .then((data) => {
-        const shuffleImages = data.filter(
-          (img) => img.category?.toLowerCase() === "shuffle",
-        );
+        const imagesArray = Array.isArray(data) ? data : data.images || [];
 
-        const shuffled = [...shuffleImages].sort(() => Math.random() - 0.5);
+        const grouped = {};
 
-        setImages(shuffled.slice(0, 4));
+        imagesArray.forEach((img) => {
+          const category = img.category?.toLowerCase() || "uncategorized";
+          if (category === "shuffle") return;
+
+          if (!grouped[category]) grouped[category] = [];
+          grouped[category].push(img);
+        });
+
+        const oneRandomPerCategory = Object.keys(grouped).map((category) => {
+          const imgs = grouped[category];
+          return imgs[Math.floor(Math.random() * imgs.length)];
+        });
+
+        setImages(oneRandomPerCategory);
       })
       .catch((err) => console.error(err));
   }, []);
@@ -40,35 +49,31 @@ const Home = () => {
   }, [images.length]);
 
   const safeIndex = images.length > 0 ? index % images.length : 0;
+  const current = images[safeIndex] || { url: fallback };
 
   return (
     <div className="w-full min-h-screen bg-[#0a0806] text-white">
       <Navbar />
 
-      {/* 🎬 Hero Section */}
+      {/* HERO */}
       <section className="relative h-screen overflow-hidden">
-        {/* Slides */}
-        {(images.length > 0 ? images : [{ url: fallback }]).map((img, i) => (
-          <div
-            key={i}
-            className={`absolute inset-0 transition-opacity duration-700 ${
-              i === safeIndex ? "opacity-100 z-10" : "opacity-0"
-            }`}
-          >
-            <img
-              src={img.url}
-              alt="wildlife"
-              loading={i === 0 ? "eager" : "lazy"} // ✅ FIXED
-              className="w-full h-full object-cover scale-110 animate-zoom"
-            />
-          </div>
-        ))}
+        {/* ✅ SINGLE IMAGE (NO STACKING BUGS) */}
+        <img
+          src={current.url}
+          alt="wildlife"
+          className="absolute inset-0 w-full h-full object-cover scale-110 animate-zoom cursor-pointer z-10"
+          onClick={() => {
+            if (current.category) {
+              navigate(`/gallery/${encodeURIComponent(current.category)}`);
+            }
+          }}
+        />
 
-        {/* Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/40 to-[#0a0806] z-20" />
+        {/* ✅ Overlay (non-blocking) */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/40 to-[#0a0806] z-20 pointer-events-none" />
 
-        {/* Center Content */}
-        <div className="relative z-30 h-full flex flex-col items-center justify-center text-center px-6">
+        {/* TEXT */}
+        <div className="relative z-30 h-full flex flex-col items-center justify-center text-center px-6 pointer-events-none">
           <h1 className="text-4xl md:text-7xl lg:text-8xl tracking-[0.2em] font-light uppercase mb-6">
             Vet in Wild
           </h1>
@@ -79,54 +84,34 @@ const Home = () => {
 
           <div className="w-24 h-px bg-gradient-to-r from-transparent via-white to-transparent opacity-60" />
         </div>
-
-        {/* Scroll Arrow */}
-        <div className="absolute bottom-12 left-1/2 -translate-x-1/2 animate-bounce z-30 pointer-events-none">
-          <svg
-            className="w-6 h-6 text-white/60"
-            fill="none"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
-          </svg>
-        </div>
       </section>
 
-      {/* Mission Section */}
+      {/* ABOUT */}
       <section className="bg-gradient-to-b from-[#0a0806] to-[#1a1410] py-12 px-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-sm tracking-[0.5em] font-light text-amber-400 mb-4 uppercase">
-              About
-            </h2>
-            <div className="w-16 h-px bg-amber-400 mx-auto mb-8" />
-            <h3 className="text-3xl md:text-5xl font-serif font-light mb-8 leading-tight">
-              Capturing Nature&apos;s Untamed Beauty
-            </h3>
-          </div>
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-sm tracking-[0.5em] text-amber-400 mb-4 uppercase">
+            About
+          </h2>
 
-          <p className="text-gray-300 text-lg md:text-xl leading-relaxed text-center font-light mb-8">
-            From the vast savannas of Africa to the dense rainforests of South
-            America, I document the raw, unfiltered essence of wildlife in their
-            natural habitats.
+          <h3 className="text-3xl md:text-5xl font-serif mb-8">
+            Capturing Nature's Untamed Beauty
+          </h3>
+
+          <p className="text-gray-300 mb-6">
+            From the vast savannas to dense rainforests, I capture wildlife in
+            their natural habitat.
           </p>
 
-          <p className="text-gray-400 text-base md:text-lg leading-relaxed text-center font-light">
-            Every photograph tells a story of survival, beauty, and the delicate
-            balance of our planet&apos;s ecosystems. My work aims to inspire
-            conservation and deepen our connection with the natural world.
+          <p className="text-gray-400">
+            Every photo tells a story of survival and beauty.
           </p>
         </div>
       </section>
 
-      {/* Featured Categories */}
+      {/* CATEGORIES */}
       <section className="bg-[#1a1410] py-32 px-6">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-sm tracking-[0.5em] font-light text-amber-400 mb-12 uppercase text-center">
+        <div className="max-w-6xl mx-auto text-center">
+          <h2 className="text-sm tracking-[0.5em] text-amber-400 mb-12 uppercase">
             Specializations
           </h2>
 
@@ -137,19 +122,12 @@ const Home = () => {
                 role="button"
                 tabIndex={0}
                 onClick={() => navigate(`/gallery/${cat}`)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") navigate(`/gallery/${cat}`);
-                }}
-                className="group cursor-pointer"
+                className="cursor-pointer border p-8 rounded-lg hover:border-amber-400"
               >
-                <div className="bg-gradient-to-br from-amber-900/20 to-transparent border border-amber-900/30 p-8 rounded-lg hover:border-amber-700/50 transition-all duration-300">
-                  <h3 className="text-xl font-serif mb-3 group-hover:text-amber-400 transition-colors capitalize">
-                    {cat}
-                  </h3>
-                  <p className="text-gray-400 text-sm leading-relaxed">
-                    Explore {cat} photography
-                  </p>
-                </div>
+                <h3 className="text-xl capitalize">{cat}</h3>
+                <p className="text-gray-400 text-sm">
+                  Explore {cat} photography
+                </p>
               </div>
             ))}
           </div>

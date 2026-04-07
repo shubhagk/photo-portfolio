@@ -9,6 +9,7 @@ import Home from "./pages/Home";
 import Contact from "./pages/Contact";
 import GlobalSearch from "./components/GlobalSearch";
 import CategoryGallery from "./components/CategoryGallery.jsx";
+
 export default function App() {
   return (
     <BrowserRouter>

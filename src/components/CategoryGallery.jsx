@@ -1,13 +1,22 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { createPortal } from "react-dom";
-import Navbar from "../components/Navbar.jsx";
 
+import Navbar from "../components/Navbar.jsx";
+import { useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { createPortal } from "react-dom";
+import { useParams } from "react-router-dom";
 const API_URL = "https://d2keqyvqexxfrb.cloudfront.net";
 
 export default function CategoryGallery() {
-  const { category } = useParams();
+  const { category: paramCategory } = useParams();
+  const location = useLocation();
   const navigate = useNavigate();
+  const stateCategory = location.state?.category;
+
+  // ✅ Support both URL + state
+  const category = paramCategory
+    ? decodeURIComponent(paramCategory)
+    : stateCategory;
 
   const [images, setImages] = useState([]);
   const [activeIndex, setActiveIndex] = useState(null);
@@ -15,6 +24,10 @@ export default function CategoryGallery() {
   const [suggestions, setSuggestions] = useState([]);
   const LOAD_COUNT = 12;
   const [visibleCount, setVisibleCount] = useState(LOAD_COUNT);
+
+  /* -------------------------------
+     INFINITE SCROLL
+  --------------------------------*/
   useEffect(() => {
     const handleScroll = () => {
       if (
@@ -37,11 +50,17 @@ export default function CategoryGallery() {
      FETCH CATEGORY IMAGES
   --------------------------------*/
   useEffect(() => {
-    fetch(`${API_URL}/images.json`) // ✅ FIXED
+    if (!category) return;
+
+    fetch(`${API_URL}/images.json`)
       .then((res) => res.json())
       .then((data) => {
-        const filtered = data.filter(
-          (img) => img.category?.toLowerCase() === category.toLowerCase(),
+        const imagesArray = Array.isArray(data) ? data : [];
+
+        const filtered = imagesArray.filter(
+          (img) =>
+            img.category?.toLowerCase().trim() ===
+            category?.toLowerCase().trim(),
         );
 
         setImages(filtered);
@@ -59,9 +78,7 @@ export default function CategoryGallery() {
     }
 
     const matches = images
-      .filter(
-        (img) => img.url.toLowerCase().includes(search.toLowerCase()), // ✅ FIXED
-      )
+      .filter((img) => img.url.toLowerCase().includes(search.toLowerCase()))
       .slice(0, 6);
 
     setSuggestions(matches);
@@ -109,6 +126,23 @@ export default function CategoryGallery() {
     };
   }, [activeIndex, filteredImages.length]);
 
+  /* -------------------------------
+     EDGE CASE: NO CATEGORY
+  --------------------------------*/
+  if (!category) {
+    return (
+      <div className="text-white p-10">
+        <p>No category selected</p>
+        <button
+          onClick={() => navigate("/gallery")}
+          className="text-amber-400 mt-4"
+        >
+          Go to Gallery
+        </button>
+      </div>
+    );
+  }
+
   return (
     <>
       {/* NAVBAR */}
@@ -140,7 +174,6 @@ export default function CategoryGallery() {
               className="w-full max-w-md px-5 py-3 rounded-full bg-[#1a140d] text-white border border-amber-400/30 focus:outline-none focus:border-amber-400"
             />
 
-            {/* SUGGESTIONS */}
             {suggestions.length > 0 && (
               <div className="absolute top-full mt-2 w-full max-w-md bg-[#1a140d] border border-amber-400/20 rounded-xl shadow-xl z-40">
                 {suggestions.map((img, i) => (
@@ -161,7 +194,6 @@ export default function CategoryGallery() {
                       alt=""
                       className="w-12 h-12 object-cover rounded"
                     />
-
                     <span className="text-gray-200 text-sm truncate">
                       {img.url.split("/").pop()}
                     </span>
@@ -173,7 +205,7 @@ export default function CategoryGallery() {
 
           {/* GRID */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredImages.map((img, index) => (
+            {visibleImages.map((img, index) => (
               <div
                 key={index}
                 onClick={() => setActiveIndex(index)}
@@ -188,6 +220,7 @@ export default function CategoryGallery() {
               </div>
             ))}
           </div>
+
           {visibleCount < filteredImages.length && (
             <p className="text-center text-gray-400 mt-10">
               Loading more images...

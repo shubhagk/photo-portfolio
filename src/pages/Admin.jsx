@@ -1,29 +1,33 @@
 import { useState } from "react";
 import Navbar from "../components/Navbar.jsx";
-import Upload from "../components/Upload.jsx";
-import CategoryList from "../components/CategoryList.jsx";
+import AdminHome from "../components/admin/AdminHome.jsx";
+import ImageList from "../components/admin/ImageList.jsx";
+import UploadManager from "../components/admin/UploadManager.jsx";
 
 export default function Admin() {
-  const [showList, setShowList] = useState(false);
+  const [view, setView] = useState("home");
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  // 🔥 Trigger re-fetch in ImageList
+  const triggerRefresh = () => {
+    setRefreshKey((k) => k + 1);
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#0a0806] to-[#1a1410] text-white">
+    <div className="min-h-screen bg-black text-white">
       <Navbar />
 
-      <section className="pt-32 pb-20 px-6">
-        <div className="max-w-5xl mx-auto space-y-10">
-          {/* Toggle Button */}
-          <button
-            onClick={() => setShowList(!showList)}
-            className="bg-amber-600 px-6 py-3 rounded text-black"
-          >
-            {showList ? "Back to Upload" : "List Images"}
-          </button>
+      <div className="pt-24 max-w-6xl mx-auto px-6">
+        {view === "home" && <AdminHome setView={setView} />}
 
-          {/* Conditional Render */}
-          {showList ? <CategoryList /> : <Upload />}
-        </div>
-      </section>
+        {view === "list" && (
+          <ImageList setView={setView} refreshKey={refreshKey} />
+        )}
+
+        {view === "upload" && (
+          <UploadManager setView={setView} onUploadSuccess={triggerRefresh} />
+        )}
+      </div>
     </div>
   );
 }

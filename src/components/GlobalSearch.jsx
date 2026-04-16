@@ -1,11 +1,9 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import Navbar from "../components/Navbar.jsx";
-
-const API_URL = "https://d2keqyvqexxfrb.cloudfront.net";
+import { API_URL } from "../config/config"; // ✅ use your API
 
 export default function GlobalSearch() {
-  const [images, setImages] = useState([]);
   const [search, setSearch] = useState("");
   const [results, setResults] = useState([]);
   const [activeIndex, setActiveIndex] = useState(null);
@@ -38,22 +36,7 @@ export default function GlobalSearch() {
   }, []);
 
   /* -----------------------------
-     LOAD IMAGES
-  ----------------------------- */
-  useEffect(() => {
-    fetch(`${API_URL}/images.json`)
-      .then((res) => res.json())
-      .then((data) => {
-        const clean = (data || []).filter(
-          (img) => img.category?.toLowerCase() !== "shuffle",
-        );
-        setImages(clean);
-      })
-      .catch(console.error);
-  }, []);
-
-  /* -----------------------------
-     LIVE SEARCH
+     🔥 API SEARCH (NEW)
   ----------------------------- */
   useEffect(() => {
     if (!search.trim()) {
@@ -61,21 +44,24 @@ export default function GlobalSearch() {
       return;
     }
 
-    const q = search.toLowerCase();
+    const fetchResults = async () => {
+      try {
+        // 🔥 call your backend
+        const res = await fetch(
+          `${API_URL}/search?q=${encodeURIComponent(search.toLowerCase())}`,
+        );
 
-    const matches = images.filter((img) => {
-      return (
-        img.category?.toLowerCase().includes(q) ||
-        img.url?.toLowerCase().includes(q)
-      );
-    });
+        const data = await res.json();
 
-    setResults(matches);
-  }, [search, images]);
+        setResults(data);
+      } catch (err) {
+        console.error(err);
+      }
+    };
 
-  /* -----------------------------
-     PAGINATED RESULTS
-  ----------------------------- */
+    fetchResults();
+  }, [search]);
+
   const visibleResults = results.slice(0, visibleCount);
 
   /* -----------------------------
@@ -123,7 +109,7 @@ export default function GlobalSearch() {
           <div className="flex justify-center mb-14">
             <input
               type="text"
-              placeholder="Search animals, birds, wildlife..."
+              placeholder="Search by country (e.g. india)"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full max-w-lg px-6 py-4 rounded-full bg-[#1a140d] text-white border border-amber-400/30"
@@ -133,30 +119,24 @@ export default function GlobalSearch() {
           {/* RESULTS */}
           {results.length > 0 && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {visibleResults.map((img) => {
-                const realIndex = results.findIndex(
-                  (image) => image.url === img.url,
-                );
+              {visibleResults.map((img, index) => (
+                <div
+                  key={img.imageId || index}
+                  onClick={() => setActiveIndex(index)}
+                  className="cursor-pointer group overflow-hidden rounded-xl aspect-[4/3] relative"
+                >
+                  <img
+                    src={img.imageUrl} // ✅ updated
+                    alt=""
+                    loading="lazy"
+                    className="w-full h-full object-cover group-hover:scale-110 transition"
+                  />
 
-                return (
-                  <div
-                    key={realIndex}
-                    onClick={() => setActiveIndex(realIndex)}
-                    className="cursor-pointer group overflow-hidden rounded-xl aspect-[4/3] relative"
-                  >
-                    <img
-                      src={img.thumbnail || img.url}
-                      alt=""
-                      loading="lazy"
-                      className="w-full h-full object-cover group-hover:scale-110 transition"
-                    />
-
-                    <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-xs text-gray-300 px-3 py-1">
-                      {img.category}
-                    </div>
+                  <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-xs text-gray-300 px-3 py-1">
+                    {img.species || img.category}
                   </div>
-                );
-              })}
+                </div>
+              ))}
             </div>
           )}
 
@@ -184,7 +164,7 @@ export default function GlobalSearch() {
             />
 
             <img
-              src={results[activeIndex].url}
+              src={results[activeIndex].imageUrl} // ✅ updated
               alt=""
               className="fixed inset-0 m-auto max-w-[90vw] max-h-[90vh] rounded-xl z-[99999]"
             />

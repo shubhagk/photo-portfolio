@@ -66,7 +66,7 @@ const Home = () => {
   ];
 
   return (
-    <div className="w-full min-h-screen bg-[#0a0806] text-white">
+    <div className="w-full min-h-screen bg-gray-900 text-white">
       <Navbar />
 
       {/* HERO */}
@@ -99,7 +99,7 @@ const Home = () => {
       </section>
 
       {/* ABOUT */}
-      <section className="bg-gradient-to-b from-[#0a0806] to-[#1a1410] py-12 px-6">
+      <section className="bg-gradient-to-b from-gray-900 to-gray-800 py-12 px-6">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-sm tracking-[0.5em] text-amber-400 mb-4 uppercase">
             About

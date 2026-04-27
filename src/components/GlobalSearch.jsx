@@ -146,6 +146,7 @@ export default function GlobalSearch() {
                 ))}
               </select>
 
+              <span className="text-gray-400 hidden md:block">OR</span>
               {/* SEARCH INPUT */}
               <input
                 type="text"
@@ -157,8 +158,6 @@ export default function GlobalSearch() {
                 }}
                 className="flex-1 px-6 py-4 rounded-full bg-[#1a140d] text-white border border-amber-400/30"
               />
-
-              <span className="text-gray-400 hidden md:block">OR</span>
             </div>
 
             {/* BUTTONS */}

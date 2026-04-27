@@ -129,20 +129,6 @@ export default function GlobalSearch() {
           {/* 🔥 SEARCH OR CATEGORY */}
           <div className="flex flex-col items-center gap-4 mb-10">
             <div className="flex flex-col md:flex-row items-center gap-4 w-full max-w-3xl">
-              {/* SEARCH INPUT */}
-              <input
-                type="text"
-                placeholder="Search anything..."
-                value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value);
-                  setFilters({ category: "" }); // clear category if typing
-                }}
-                className="flex-1 px-6 py-4 rounded-full bg-[#1a140d] text-white border border-amber-400/30"
-              />
-
-              <span className="text-gray-400 hidden md:block">OR</span>
-
               {/* CATEGORY DROPDOWN */}
               <select
                 value={filters.category}
@@ -159,6 +145,20 @@ export default function GlobalSearch() {
                   </option>
                 ))}
               </select>
+
+              {/* SEARCH INPUT */}
+              <input
+                type="text"
+                placeholder="Search anything..."
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setFilters({ category: "" }); // clear category if typing
+                }}
+                className="flex-1 px-6 py-4 rounded-full bg-[#1a140d] text-white border border-amber-400/30"
+              />
+
+              <span className="text-gray-400 hidden md:block">OR</span>
             </div>
 
             {/* BUTTONS */}

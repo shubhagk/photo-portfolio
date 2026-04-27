@@ -16,7 +16,8 @@ export default function Contact() {
               Let's Connect
             </h2>
             <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-              Interested in prints, licensing, or safari photography expeditions? I'd love to hear from you.
+              Interested in prints, licensing, or safari photography
+              expeditions? I'd love to hear from you.
             </p>
           </div>
 
@@ -115,13 +116,22 @@ export default function Contact() {
                 Connect on Social Media
               </h3>
               <div className="flex justify-center gap-8">
-                <a href="#" className="text-gray-400 hover:text-amber-400 transition-colors text-sm tracking-wider">
+                <a
+                  href="#"
+                  className="text-gray-400 hover:text-amber-400 transition-colors text-sm tracking-wider"
+                >
                   INSTAGRAM
                 </a>
-                <a href="#" className="text-gray-400 hover:text-amber-400 transition-colors text-sm tracking-wider">
-                  TWITTER
+                <a
+                  href="#"
+                  className="text-gray-400 hover:text-amber-400 transition-colors text-sm tracking-wider"
+                >
+                  X
                 </a>
-                <a href="#" className="text-gray-400 hover:text-amber-400 transition-colors text-sm tracking-wider">
+                <a
+                  href="#"
+                  className="text-gray-400 hover:text-amber-400 transition-colors text-sm tracking-wider"
+                >
                   FACEBOOK
                 </a>
               </div>

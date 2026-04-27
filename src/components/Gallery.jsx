@@ -90,27 +90,6 @@ export default function Gallery() {
             </p>
           </div>
 
-          {/* SEARCH */}
-          <div className="flex justify-center mb-14">
-            <input
-              type="text"
-              placeholder="Search wildlife categories..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="
-                w-full max-w-md
-                px-5 py-3
-                rounded-full
-                bg-[#1a140d]
-                text-white
-                border border-amber-400/30
-                focus:outline-none
-                focus:border-amber-400
-                transition
-              "
-            />
-          </div>
-
           {/* CATEGORY GRID */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {currentCategories.map((cat) => (

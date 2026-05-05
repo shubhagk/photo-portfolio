@@ -76,9 +76,19 @@ export default function GlobalSearch() {
       const url = `${API_URL}/search?q=${encodeURIComponent(finalQuery)}`;
 
       const res = await fetch(url);
-      if (!res.ok) throw new Error(`API error: ${res.status}`);
 
-      const data = await res.json();
+      // 🔥 SAFE PARSING (fix for your JSON error)
+      const text = await res.text();
+
+      console.log("RAW RESPONSE:", text); // debug
+
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        console.error("❌ NOT JSON RESPONSE:", text);
+        throw new Error("Backend did not return JSON");
+      }
 
       setResults(Array.isArray(data) ? data : []);
       setVisibleCount(LOAD_COUNT);

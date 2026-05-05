@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { API_BASE } from "../../config/config";
+import { API_BASE, API_URL } from "../../config/config";
 
 export default function EditMetadataModal({ img, onClose, onSaved }) {
   const [form, setForm] = useState({

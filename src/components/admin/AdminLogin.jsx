@@ -5,6 +5,8 @@ export default function AdminLogin({ onLogin }) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
+  const [showPassword, setShowPassword] = useState(false);
+
   const handleLogin = async (e) => {
     e.preventDefault();
     console.log("HANDLE LOGIN RUNNING");
@@ -52,13 +54,23 @@ export default function AdminLogin({ onLogin }) {
           onChange={(e) => setUsername(e.target.value)}
         />
 
-        <input
-          type="password"
-          className="w-full mb-4 p-3 rounded bg-zinc-800"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
+        <div className="relative mb-4">
+          <input
+            type={showPassword ? "text" : "password"}
+            className="w-full p-3 rounded bg-zinc-800 pr-12"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+          >
+            {showPassword ? "🙈" : "👁️"}
+          </button>
+        </div>
 
         {error && <div className="text-red-400 mb-4">{error}</div>}
 

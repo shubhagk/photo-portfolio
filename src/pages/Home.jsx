@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar.jsx";
 import { useNavigate } from "react-router-dom";
+import Footer from "../components/Footer.jsx";
 
 const API_URL = "https://d2keqyvqexxfrb.cloudfront.net";
 
@@ -110,12 +111,15 @@ const Home = () => {
           </h3>
 
           <p className="text-gray-300 mb-6">
-            From the vast savannas to dense rainforests, I capture wildlife in
-            their natural habitat.
+            From the vast savannas of Africa to the dense rainforests of South
+            America, I document the raw, unfiltered essence of wildlife in their
+            natural habitats
           </p>
 
           <p className="text-gray-400">
-            Every photo tells a story of survival and beauty.
+            Every photograph tells a story of survival, beauty, and the delicate
+            balance of our planet&apos;s ecosystems. My work aims to inspire
+            conservation and deepen our connection with the natural world.
           </p>
         </div>
       </section>
@@ -171,6 +175,7 @@ const Home = () => {
           )}
         </div>
       </section>
+      <Footer />
     </div>
   );
 };

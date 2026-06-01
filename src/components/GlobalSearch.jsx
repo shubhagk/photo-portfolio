@@ -1,18 +1,24 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import Navbar from "../components/Navbar.jsx";
-import { API_URL, IMAGES_CLOUDFRONT_API_URL } from "../config/config";
+import { IMAGES_CLOUDFRONT_API_URL } from "../config/config";
+import { searchImages } from "../services/imageService.js";
+import useCategories from "../services/useCategories";
 
 export default function GlobalSearch() {
   const [search, setSearch] = useState("");
   const [lastQuery, setLastQuery] = useState("");
+  const categories = useCategories();
 
+  {
+    categories.map((c) => (
+      <option key={c.value} value={c.value}>
+        {c.value} ({c.count})
+      </option>
+    ));
+  }
   const [filters, setFilters] = useState({
     category: "",
-  });
-
-  const [filterOptions, setFilterOptions] = useState({
-    categories: [],
   });
 
   const [results, setResults] = useState([]);
@@ -21,33 +27,6 @@ export default function GlobalSearch() {
 
   const LOAD_COUNT = 16;
   const [visibleCount, setVisibleCount] = useState(LOAD_COUNT);
-
-  /* ---------------- FETCH FILTER OPTIONS ---------------- */
-  useEffect(() => {
-    fetch(`${IMAGES_CLOUDFRONT_API_URL}/images.json`)
-      .then((res) => res.json())
-      .then((data) => {
-        const categories = {};
-
-        const filteredData = data.filter(
-          (img) => img.category?.toLowerCase() !== "shuffle",
-        );
-
-        filteredData.forEach((img) => {
-          if (img.category) {
-            categories[img.category] = (categories[img.category] || 0) + 1;
-          }
-        });
-
-        setFilterOptions({
-          categories: Object.entries(categories).map(([value, count]) => ({
-            value,
-            count,
-          })),
-        });
-      })
-      .catch((err) => console.error("Filter load error:", err));
-  }, []);
 
   /* ---------------- CLEAR ---------------- */
   const clearAllFilters = () => {
@@ -59,6 +38,7 @@ export default function GlobalSearch() {
     setLastQuery("");
   };
 
+  /* ---------------- SEARCH ---------------- */
   /* ---------------- SEARCH ---------------- */
   const fetchResultsManual = async () => {
     try {
@@ -73,22 +53,7 @@ export default function GlobalSearch() {
 
       setLastQuery(finalQuery);
 
-      const url = `${API_URL}/search?q=${encodeURIComponent(finalQuery)}`;
-
-      const res = await fetch(url);
-
-      // 🔥 SAFE PARSING (fix for your JSON error)
-      const text = await res.text();
-
-      console.log("RAW RESPONSE:", text); // debug
-
-      let data;
-      try {
-        data = JSON.parse(text);
-      } catch (e) {
-        console.error("❌ NOT JSON RESPONSE:", text);
-        throw new Error("Backend did not return JSON");
-      }
+      const data = await searchImages(finalQuery);
 
       setResults(Array.isArray(data) ? data : []);
       setVisibleCount(LOAD_COUNT);
@@ -103,7 +68,6 @@ export default function GlobalSearch() {
       setLoading(false);
     }
   };
-
   /* ---------------- SCROLL ---------------- */
   useEffect(() => {
     const handleScroll = () => {
@@ -137,19 +101,24 @@ export default function GlobalSearch() {
           </h1>
 
           {/* 🔥 SEARCH OR CATEGORY */}
-          <div className="flex flex-col items-center gap-4 mb-10">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              fetchResultsManual();
+            }}
+            className="flex flex-col items-center gap-4 mb-10"
+          >
             <div className="flex flex-col md:flex-row items-center gap-4 w-full max-w-3xl">
-              {/* CATEGORY DROPDOWN */}
               <select
                 value={filters.category}
                 onChange={(e) => {
                   setFilters({ category: e.target.value });
-                  setSearch(""); // clear search if selecting category
+                  setSearch("");
                 }}
                 className="flex-1 px-4 py-4 rounded-full bg-[#1a140d] text-white border border-amber-400/30"
               >
                 <option value="">Select Category</option>
-                {filterOptions.categories.map((c) => (
+                {categories.map((c) => (
                   <option key={c.value} value={c.value}>
                     {c.value} ({c.count})
                   </option>
@@ -157,36 +126,36 @@ export default function GlobalSearch() {
               </select>
 
               <span className="text-gray-400 hidden md:block">OR</span>
-              {/* SEARCH INPUT */}
+
               <input
                 type="text"
                 placeholder="Search anything..."
                 value={search}
                 onChange={(e) => {
                   setSearch(e.target.value);
-                  setFilters({ category: "" }); // clear category if typing
+                  setFilters({ category: "" });
                 }}
                 className="flex-1 px-6 py-4 rounded-full bg-[#1a140d] text-white border border-amber-400/30"
               />
             </div>
 
-            {/* BUTTONS */}
             <div className="flex gap-4">
               <button
-                onClick={fetchResultsManual}
+                type="submit"
                 className="px-8 py-3 bg-amber-500 hover:bg-amber-600 text-black rounded-full font-semibold"
               >
                 Search
               </button>
 
               <button
+                type="button"
                 onClick={clearAllFilters}
                 className="px-6 py-3 border border-gray-500 text-gray-300 rounded-full hover:bg-gray-700/30"
               >
                 Clear All
               </button>
             </div>
-          </div>
+          </form>
 
           {/* RESULTS */}
           <div className="md:col-span-3">

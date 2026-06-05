@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { API_BASE, API_URL } from "../../config/config";
 
+//Details of meta data
 export default function EditMetadataModal({ img, onClose, onSaved }) {
   const [form, setForm] = useState({
     category: img.category || "",

@@ -1,6 +1,6 @@
 # VetInWild Photography
 
-React and Vite portfolio with a Cloudflare Worker API, R2 image storage, and D1 metadata/search.
+React and Vite portfolio. The frontend can be hosted by Vercel or Cloudflare Workers; the API, image storage, and metadata/search use a Cloudflare Worker, R2, and D1.
 
 ## Data model
 
@@ -9,7 +9,7 @@ Each photo stores a category, year, country, species, subspecies, place, and opt
 ## Cloudflare setup
 
 1. Install dependencies with `npm install`.
-2. Create an R2 bucket named `photo-portfolio-images` and attach a public custom domain to it. The public domain is used only for reading images; writes go through the authenticated Worker API.
+2. Create an R2 bucket named `photo-portfolio-images`. Keep direct public bucket access disabled; the Worker serves images through its `/media/*` route and handles uploads through the authenticated API.
 3. Create the D1 database and copy its ID into `wrangler.jsonc`:
 
    ```powershell
@@ -25,7 +25,7 @@ Each photo stores a category, year, country, species, subspecies, place, and opt
    npx wrangler@latest secret put ADMIN_SESSION_SECRET
    ```
 
-6. Apply the schema, build, and deploy:
+6. Apply the schema, build, and deploy the Worker:
 
    ```powershell
    npm run cloudflare:migrate:remote
@@ -33,6 +33,14 @@ Each photo stores a category, year, country, species, subspecies, place, and opt
    ```
 
 For local development, run `npm run cloudflare:migrate:local`, then `npm run cloudflare:dev`. The API is same-origin under `/api`; no AWS URLs or credentials are used by the application.
+
+## Vercel frontend deployment
+
+The Vercel project serves the static Vite frontend. The root `vercel.json` rewrites `/api/*` and `/media/*` to the deployed Cloudflare Worker, which continues to use D1 and R2. Keep the Worker deployed when using Vercel; no Vercel environment variables are needed.
+
+Import this repository into Vercel with the project root as the root directory. The build command is `npm run build` and the output directory is `dist`. The rewrite rules in `vercel.json` also support React Router deep links such as `/search` and `/admin`.
+
+After the first Vercel deployment, add `www.vetinwild.in` to the Vercel project and configure the DNS record Vercel provides. Use `www.vetinwild.in` for the site; image requests go through the same host and are proxied to the Worker.
 
 ## API routes
 

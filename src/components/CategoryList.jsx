@@ -1,27 +1,14 @@
 import { useEffect, useState } from "react";
 import ImageList from "./ImageList";
-
-const API_URL = "https://d2keqyvqexxfrb.cloudfront.net";
+import { getCategories } from "../services/imageService.js";
 
 export default function CategoryList() {
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("");
 
   useEffect(() => {
-    fetch(`${API_URL}/images.json`)
-      .then((res) => res.json())
-      .then((data) => {
-        // ✅ Extract unique categories
-        const uniqueCategories = [
-          ...new Set(
-            data
-              .map((img) => img.category)
-              .filter((cat) => cat && cat.toLowerCase() !== "shuffle"),
-          ),
-        ];
-
-        setCategories(uniqueCategories);
-      })
+    getCategories()
+      .then((data) => setCategories(data.map((category) => category.value)))
       .catch(console.error);
   }, []);
 

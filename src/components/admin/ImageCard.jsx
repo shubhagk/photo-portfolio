@@ -15,7 +15,8 @@ export default function ImageCard({ img, onDelete }) {
 
       <div className="text-sm mt-2">
         <p>{img.species}</p>
-        <p>{img.country}</p>
+        {img.subspecies && <p>{img.subspecies}</p>}
+        <p>{[img.place, img.country, img.year].filter(Boolean).join(" · ")}</p>
       </div>
 
       <div className="flex gap-2 mt-2 relative z-10">

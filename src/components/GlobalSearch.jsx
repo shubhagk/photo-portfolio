@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import Navbar from "../components/Navbar.jsx";
-import { IMAGES_CLOUDFRONT_API_URL } from "../config/config";
 import { searchImages } from "../services/imageService.js";
 import useCategories from "../services/useCategories";
 
@@ -10,15 +9,13 @@ export default function GlobalSearch() {
   const [lastQuery, setLastQuery] = useState("");
   const categories = useCategories();
 
-  {
-    categories.map((c) => (
-      <option key={c.value} value={c.value}>
-        {c.value} ({c.count})
-      </option>
-    ));
-  }
   const [filters, setFilters] = useState({
     category: "",
+    year: "",
+    country: "",
+    species: "",
+    subspecies: "",
+    place: "",
   });
 
   const [results, setResults] = useState([]);
@@ -31,7 +28,14 @@ export default function GlobalSearch() {
   /* ---------------- CLEAR ---------------- */
   const clearAllFilters = () => {
     setSearch("");
-    setFilters({ category: "" });
+    setFilters({
+      category: "",
+      year: "",
+      country: "",
+      species: "",
+      subspecies: "",
+      place: "",
+    });
     setResults([]);
     setVisibleCount(LOAD_COUNT);
     setActiveIndex(null);
@@ -44,23 +48,28 @@ export default function GlobalSearch() {
     try {
       setLoading(true);
 
-      const finalQuery = search || filters.category;
-
-      if (!finalQuery) {
+      const hasFilters = Object.values(filters).some(Boolean);
+      if (!search.trim() && !hasFilters) {
         setResults([]);
         return;
       }
 
-      setLastQuery(finalQuery);
-
-      const data = await searchImages(finalQuery);
+      setLastQuery(search.trim() || Object.values(filters).filter(Boolean).join(", "));
+      const data = await searchImages({ q: search.trim(), ...filters });
 
       setResults(Array.isArray(data) ? data : []);
       setVisibleCount(LOAD_COUNT);
 
       // clear inputs AFTER search
       setSearch("");
-      setFilters({ category: "" });
+      setFilters({
+        category: "",
+        year: "",
+        country: "",
+        species: "",
+        subspecies: "",
+        place: "",
+      });
     } catch (err) {
       console.error("Search error:", err);
       setResults([]);
@@ -112,7 +121,7 @@ export default function GlobalSearch() {
               <select
                 value={filters.category}
                 onChange={(e) => {
-                  setFilters({ category: e.target.value });
+                  setFilters((current) => ({ ...current, category: e.target.value }));
                   setSearch("");
                 }}
                 className="flex-1 px-4 py-4 rounded-full bg-[#1a140d] text-white border border-amber-400/30"
@@ -125,18 +134,39 @@ export default function GlobalSearch() {
                 ))}
               </select>
 
-              <span className="text-gray-400 hidden md:block">OR</span>
-
               <input
                 type="text"
                 placeholder="Search anything..."
                 value={search}
                 onChange={(e) => {
                   setSearch(e.target.value);
-                  setFilters({ category: "" });
                 }}
                 className="flex-1 px-6 py-4 rounded-full bg-[#1a140d] text-white border border-amber-400/30"
               />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 w-full max-w-5xl">
+              {[
+                ["year", "Year"],
+                ["country", "Country"],
+                ["species", "Species"],
+                ["subspecies", "Subspecies"],
+                ["place", "Place"],
+              ].map(([name, label]) => (
+                <input
+                  key={name}
+                  type={name === "year" ? "number" : "text"}
+                  placeholder={label}
+                  value={filters[name]}
+                  onChange={(e) =>
+                    setFilters((current) => ({
+                      ...current,
+                      [name]: e.target.value,
+                    }))
+                  }
+                  className="px-4 py-3 rounded-full bg-[#1a140d] text-white border border-amber-400/30"
+                />
+              ))}
             </div>
 
             <div className="flex gap-4">
@@ -185,7 +215,7 @@ export default function GlobalSearch() {
                     />
 
                     <div className="bg-black/60 text-xs text-gray-300 px-3 py-1">
-                      {img.species || img.category} • {img.city}
+                      {img.species || img.category} • {img.place || img.country}
                     </div>
                   </div>
                 ))}

@@ -2,22 +2,20 @@ import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar.jsx";
 import { useNavigate } from "react-router-dom";
 import Footer from "../components/Footer.jsx";
-
-const API_URL = "https://d2keqyvqexxfrb.cloudfront.net";
+import { getImages } from "../services/imageService.js";
 
 const Home = () => {
   const [images, setImages] = useState([]);
   const [allImages, setAllImages] = useState([]); // ✅ for categories
   const [index, setIndex] = useState(0);
   const navigate = useNavigate();
-  const fallback = `${API_URL}/wildlife/wildlife1.jpeg`;
+  const fallback = "/wildlife/wildlife1.jpeg";
 
   // ✅ Fetch images
   useEffect(() => {
-    fetch(`${API_URL}/images.json`)
-      .then((res) => res.json())
+    getImages()
       .then((data) => {
-        const imagesArray = Array.isArray(data) ? data : data.images || [];
+        const imagesArray = Array.isArray(data) ? data : [];
 
         setAllImages(imagesArray); // ✅ store all images
 
@@ -40,7 +38,7 @@ const Home = () => {
 
         setImages(oneRandomPerCategory);
       })
-      .catch((err) => console.error(err));
+      .catch((err) => console.error("Photo load error:", err));
   }, []);
 
   // ✅ Auto slide

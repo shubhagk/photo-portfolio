@@ -5,13 +5,14 @@ import AdminHome from "../components/admin/AdminHome.jsx";
 import ImageList from "../components/admin/ImageList.jsx";
 import UploadManager from "../components/admin/UploadManager.jsx";
 import AdminLogin from "../components/admin/AdminLogin.jsx";
+import { ADMIN_TOKEN_KEY } from "../config/config.js";
 
 export default function Admin() {
   const [view, setView] = useState("home");
 
   const [refreshKey, setRefreshKey] = useState(0);
 
-  const loggedIn = localStorage.getItem("adminLoggedIn") === "true";
+  const loggedIn = Boolean(sessionStorage.getItem(ADMIN_TOKEN_KEY));
 
   const triggerRefresh = () => {
     setRefreshKey((k) => k + 1);
@@ -22,8 +23,6 @@ export default function Admin() {
     return (
       <AdminLogin
         onLogin={() => {
-          localStorage.setItem("adminLoggedIn", "true");
-
           window.location.reload();
         }}
       />
@@ -38,7 +37,7 @@ export default function Admin() {
       <div className="flex justify-end max-w-6xl mx-auto px-6 pt-24">
         <button
           onClick={() => {
-            localStorage.removeItem("adminLoggedIn");
+            sessionStorage.removeItem(ADMIN_TOKEN_KEY);
 
             window.location.reload();
           }}

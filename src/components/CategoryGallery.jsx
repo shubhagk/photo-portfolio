@@ -5,7 +5,7 @@ import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { createPortal } from "react-dom";
 import { useParams } from "react-router-dom";
-const API_URL = "https://d2keqyvqexxfrb.cloudfront.net";
+import { getImages, searchImages } from "../services/imageService.js";
 
 export default function CategoryGallery() {
   const { category: paramCategory } = useParams();
@@ -52,18 +52,11 @@ export default function CategoryGallery() {
   useEffect(() => {
     if (!category) return;
 
-    fetch(`${API_URL}/images.json`)
-      .then((res) => res.json())
+    getImages({ category })
       .then((data) => {
         const imagesArray = Array.isArray(data) ? data : [];
 
-        const filtered = imagesArray.filter(
-          (img) =>
-            img.category?.toLowerCase().trim() ===
-            category?.toLowerCase().trim(),
-        );
-
-        setImages(filtered);
+        setImages(imagesArray);
       })
       .catch((err) => console.error("Image load error:", err));
   }, [category]);
@@ -77,19 +70,15 @@ export default function CategoryGallery() {
       return;
     }
 
-    const matches = images
-      .filter((img) => img.url.toLowerCase().includes(search.toLowerCase()))
-      .slice(0, 6);
-
-    setSuggestions(matches);
-  }, [search, images]);
+    searchImages({ q: search, category, limit: 6 })
+      .then(setSuggestions)
+      .catch(console.error);
+  }, [search, category]);
 
   /* -------------------------------
      FILTER IMAGES
   --------------------------------*/
-  const filteredImages = images.filter((img) =>
-    img.url.toLowerCase().includes(search.toLowerCase()),
-  );
+  const filteredImages = search.trim() ? suggestions : images;
 
   const visibleImages = filteredImages.slice(0, visibleCount);
 
@@ -195,7 +184,7 @@ export default function CategoryGallery() {
                       className="w-12 h-12 object-cover rounded"
                     />
                     <span className="text-gray-200 text-sm truncate">
-                      {img.url.split("/").pop()}
+                      {img.species || img.place || img.category || "Photo"}
                     </span>
                   </div>
                 ))}
@@ -211,7 +200,7 @@ export default function CategoryGallery() {
                 onClick={() => setActiveIndex(index)}
                 className="cursor-pointer group relative overflow-hidden rounded-xl aspect-[4/3]"
               >
-                <img
+              <img
                   src={img.url}
                   alt=""
                   loading="lazy"

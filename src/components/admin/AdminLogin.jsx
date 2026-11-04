@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { loginAdmin } from "../../services/imageService.js";
+import { ADMIN_TOKEN_KEY } from "../../config/config.js";
 
 export default function AdminLogin({ onLogin }) {
   const [username, setUsername] = useState("");
@@ -9,33 +11,12 @@ export default function AdminLogin({ onLogin }) {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    console.log("HANDLE LOGIN RUNNING");
     try {
-      const res = await fetch(
-        "https://xg7ieiyyce.execute-api.eu-north-1.amazonaws.com/default/admin-login",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            username,
-            password,
-          }),
-        },
-      );
-
-      const data = await res.json();
-
-      if (data.success) {
-        localStorage.setItem("adminLoggedIn", "true");
-
-        onLogin();
-      } else {
-        setError("Invalid credentials");
-      }
+      const { token } = await loginAdmin(username, password);
+      sessionStorage.setItem(ADMIN_TOKEN_KEY, token);
+      onLogin();
     } catch (err) {
-      setError("Server error");
+      setError(err.message || "Login failed");
     }
   };
 

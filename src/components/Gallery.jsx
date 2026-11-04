@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar.jsx";
+import { getImages } from "../services/imageService.js";
 
-const API_URL = "https://d2keqyvqexxfrb.cloudfront.net";
 const ITEMS_PER_PAGE = 6; // 👈 adjust (6 = 2 rows, 12 = bigger pages)
 
 export default function Gallery() {
@@ -14,8 +14,7 @@ export default function Gallery() {
      FETCH IMAGES FROM JSON
   --------------------------------*/
   useEffect(() => {
-    fetch(`${API_URL}/images.json`)
-      .then((res) => res.json())
+    getImages()
       .then((data) => {
         const grouped = {};
 

@@ -7,10 +7,14 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "cloudflare:dev": "npm run build && npx wrangler@latest dev",
+    "cloudflare:deploy": "npm run build && npx wrangler@latest deploy",
+    "cloudflare:migrate:local": "npx wrangler@latest d1 migrations apply photo-portfolio --local",
+    "cloudflare:migrate:remote": "npx wrangler@latest d1 migrations apply photo-portfolio --remote",
+    "cloudflare:import-legacy": "node scripts/import-legacy-gallery.mjs"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.996.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-router-dom": "^7.13.0",
@@ -18,6 +22,7 @@
     "slick-carousel": "^1.8.1"
   },
   "devDependencies": {
+    "@aws-sdk/client-s3": "^3.996.0",
     "@eslint/js": "^9.39.1",
     "@tailwindcss/postcss": "^4.1.18",
     "@types/react": "^19.2.7",

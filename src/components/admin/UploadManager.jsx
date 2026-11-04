@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
-import { API_BASE } from "../../config/config";
+import { getCategories, uploadPhoto } from "../../services/imageService.js";
 
 export default function UploadManager({ setView, onUploadSuccess }) {
   const [files, setFiles] = useState([]);
   const [category, setCategory] = useState("");
   const [country, setCountry] = useState("");
   const [species, setSpecies] = useState("");
+  const [subspecies, setSubspecies] = useState("");
+  const [place, setPlace] = useState("");
   const [desc, setDesc] = useState("");
   const [year, setYear] = useState(new Date().getFullYear());
   const [loading, setLoading] = useState(false);
@@ -15,9 +17,8 @@ export default function UploadManager({ setView, onUploadSuccess }) {
 
   // 🔥 Load categories from API
   useEffect(() => {
-    fetch(`${API_BASE}/categories`)
-      .then((res) => res.json())
-      .then(setCategories)
+    getCategories()
+      .then((data) => setCategories(data.map((item) => item.value)))
       .catch(console.error);
   }, []);
 
@@ -39,45 +40,20 @@ export default function UploadManager({ setView, onUploadSuccess }) {
   // 🔥 Upload logic (unchanged, just cleaned)
   const handleUpload = async () => {
     if (!files.length) return alert("Select files");
-    if (!category || !country) return alert("Category & Country required");
+    if (!category) return alert("Category is required");
 
     setLoading(true);
 
     try {
       for (const file of files) {
-        // 1️⃣ Get presigned URL
-        const res = await fetch(`${API_BASE}/upload-url`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            fileName: file.name,
-            fileType: file.type,
-            category,
-          }),
-        });
-
-        const { uploadUrl, s3Key, fileUrl } = await res.json();
-
-        // 2️⃣ Upload to S3
-        await fetch(uploadUrl, {
-          method: "PUT",
-          headers: { "Content-Type": file.type },
-          body: file,
-        });
-
-        // 3️⃣ Save metadata
-        await fetch(`${API_BASE}/metadata`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            s3Key,
-            imageUrl: fileUrl,
-            category,
-            country,
-            species,
-            year: Number(year),
-            desc,
-          }),
+        await uploadPhoto(file, {
+          category,
+          country,
+          species,
+          subspecies,
+          place,
+          year: Number(year) || "",
+          description: desc,
         });
       }
 
@@ -90,6 +66,8 @@ export default function UploadManager({ setView, onUploadSuccess }) {
       setCategory("");
       setCountry("");
       setSpecies("");
+      setSubspecies("");
+      setPlace("");
       setDesc("");
       setYear(new Date().getFullYear());
       setIsNewCategory(false);
@@ -160,6 +138,20 @@ export default function UploadManager({ setView, onUploadSuccess }) {
         />
 
         <input
+          value={subspecies}
+          onChange={(e) => setSubspecies(e.target.value)}
+          placeholder="Subspecies"
+          className="p-3 bg-black border"
+        />
+
+        <input
+          value={place}
+          onChange={(e) => setPlace(e.target.value)}
+          placeholder="Place"
+          className="p-3 bg-black border"
+        />
+
+        <input
           value={year}
           onChange={(e) => setYear(e.target.value)}
           placeholder="Year"
@@ -169,7 +161,7 @@ export default function UploadManager({ setView, onUploadSuccess }) {
         <input
           value={desc}
           onChange={(e) => setDesc(e.target.value)}
-          placeholder="Description"
+          placeholder="Description (optional)"
           className="p-3 bg-black border"
         />
       </div>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { API_BASE, API_URL } from "../../config/config";
+import { updatePhoto } from "../../services/imageService.js";
 
 //Details of meta data
 export default function EditMetadataModal({ img, onClose, onSaved }) {
@@ -7,7 +7,9 @@ export default function EditMetadataModal({ img, onClose, onSaved }) {
     category: img.category || "",
     country: img.country || "",
     species: img.species || "",
-    desc: img.desc || "",
+    subspecies: img.subspecies || "",
+    place: img.place || "",
+    description: img.description || img.desc || "",
     year: img.year || "",
   });
 
@@ -16,17 +18,13 @@ export default function EditMetadataModal({ img, onClose, onSaved }) {
   };
 
   const handleSave = async () => {
-    await fetch(`${API_BASE}/metadata`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        imageId: img.imageId,
-        updates: form,
-      }),
-    });
-
-    onSaved(form);
-    onClose();
+    try {
+      const updated = await updatePhoto(img.imageId, form);
+      onSaved(updated);
+      onClose();
+    } catch (error) {
+      alert(error.message || "Could not save photo metadata");
+    }
   };
 
   return (
@@ -56,6 +54,20 @@ export default function EditMetadataModal({ img, onClose, onSaved }) {
           className="w-full p-2 bg-black border"
         />
         <input
+          name="subspecies"
+          value={form.subspecies}
+          onChange={handleChange}
+          placeholder="Subspecies"
+          className="w-full p-2 bg-black border"
+        />
+        <input
+          name="place"
+          value={form.place}
+          onChange={handleChange}
+          placeholder="Place"
+          className="w-full p-2 bg-black border"
+        />
+        <input
           name="year"
           value={form.year}
           onChange={handleChange}
@@ -63,10 +75,10 @@ export default function EditMetadataModal({ img, onClose, onSaved }) {
           className="w-full p-2 bg-black border"
         />
         <input
-          name="desc"
-          value={form.desc}
+          name="description"
+          value={form.description}
           onChange={handleChange}
-          placeholder="Description"
+          placeholder="Description (optional)"
           className="w-full p-2 bg-black border"
         />
 

@@ -13,14 +13,12 @@ export default function ImageList({ setView }) {
   /* ---------------- SEARCH ---------------- */
   const handleSearch = async () => {
     try {
-      const query = search || category;
-
-      if (!query?.trim()) {
+      if (!search.trim() && !category) {
         setImages([]);
         return;
       }
 
-      const results = await searchImages(query);
+      const results = await searchImages({ q: search.trim(), category });
 
       setImages(Array.isArray(results) ? results : []);
     } catch (err) {
@@ -41,7 +39,7 @@ export default function ImageList({ setView }) {
     }
 
     try {
-      const results = await searchImages(selectedCategory);
+      const results = await searchImages({ category: selectedCategory });
       setImages(Array.isArray(results) ? results : []);
     } catch (err) {
       console.error(err);
@@ -51,7 +49,7 @@ export default function ImageList({ setView }) {
   /* ---------------- DELETE ---------------- */
   const handleDelete = async (img) => {
     try {
-      await deleteImage(img.imageId, img.s3Key);
+      await deleteImage(img.imageId);
 
       setImages((prev) => prev.filter((i) => i.imageId !== img.imageId));
     } catch (err) {
